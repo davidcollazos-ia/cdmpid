@@ -15,6 +15,12 @@ const state = {
   guide: {
     section: "all",
     type: "all",
+    pestaña: "all",
+    indicador: "",
+    fuente: "",
+    excel: "",
+    hoja: "",
+    campo: "",
   },
 };
 
@@ -252,6 +258,12 @@ function renderGuideSection() {
   const filteredRows = guideRows.filter((row) => {
     if (state.guide.section !== "all" && normalize(row.section) !== state.guide.section) return false;
     if (state.guide.type !== "all" && normalize(row.tipo) !== state.guide.type) return false;
+    if (state.guide.pestaña !== "all" && !normalize(`${row.tabIndex}. ${row.tab}`).includes(normalize(state.guide.pestaña))) return false;
+    if (state.guide.indicador && !normalize(row.indicador).includes(normalize(state.guide.indicador))) return false;
+    if (state.guide.fuente && !normalize(row.fuente).includes(normalize(state.guide.fuente))) return false;
+    if (state.guide.excel && !normalize(row.excel).includes(normalize(state.guide.excel))) return false;
+    if (state.guide.hoja && !normalize(row.hoja).includes(normalize(state.guide.hoja))) return false;
+    if (state.guide.campo && !normalize(row.campo).includes(normalize(state.guide.campo))) return false;
     return true;
   });
   const guideLabels = [
@@ -297,6 +309,13 @@ function renderGuideSection() {
               </select>
             </div>
             <div class="guide-filter">
+              <label>Pestaña</label>
+              <select data-guide-filter="pestaña">
+                <option value="all" ${state.guide.pestaña === "all" ? "selected" : ""}>Todas</option>
+                ${guideRows.map((row) => row.tabIndex).filter((v, i, a) => a.indexOf(v) === i).map((idx) => `<option value="${idx}" ${state.guide.pestaña === String(idx) ? "selected" : ""}>${idx}. ${clean(diagnosticBlocks[idx - 1]?.title || "")}</option>`).join("")}
+              </select>
+            </div>
+            <div class="guide-filter">
               <label>Tipo</label>
               <select data-guide-filter="type">
                 <option value="all" ${state.guide.type === "all" ? "selected" : ""}>Todos</option>
@@ -305,6 +324,26 @@ function renderGuideSection() {
                 <option value="real/derivado" ${state.guide.type === "real/derivado" ? "selected" : ""}>Real / derivado</option>
                 <option value="mixto" ${state.guide.type === "mixto" ? "selected" : ""}>Mixto</option>
               </select>
+            </div>
+            <div class="guide-filter">
+              <label>Indicador</label>
+              <input data-guide-filter="indicador" value="${state.guide.indicador}" placeholder="Buscar indicador" />
+            </div>
+            <div class="guide-filter">
+              <label>Fuente</label>
+              <input data-guide-filter="fuente" value="${state.guide.fuente}" placeholder="S15 / S2 / DatosCdM" />
+            </div>
+            <div class="guide-filter">
+              <label>Excel</label>
+              <input data-guide-filter="excel" value="${state.guide.excel}" placeholder="Nombre del Excel" />
+            </div>
+            <div class="guide-filter">
+              <label>Hoja</label>
+              <input data-guide-filter="hoja" value="${state.guide.hoja}" placeholder="Nombre de hoja" />
+            </div>
+            <div class="guide-filter">
+              <label>Campo usado</label>
+              <input data-guide-filter="campo" value="${state.guide.campo}" placeholder="Q1, ADR, etc." />
             </div>
             <div class="guide-filter guide-filter--meta">
               <label>Filtrados</label>
