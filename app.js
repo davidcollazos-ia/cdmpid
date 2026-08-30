@@ -206,14 +206,14 @@ function renderGuideSection() {
     ["Fuentes reales", "4", "Excel convertidos a JS"],
     ["Vistas conectadas", "6", "Ya leen datos o agregados reales"],
     ["Bloques simulados", "Parcial", "Todavía quedan maquetas"],
-    ["Estado", "Vivo", "La guía se actualizará con cada avance"],
+    ["Estado", "Vivo", "El informe se actualizará con cada avance"],
   ];
   return `
     <section class="panel guide-panel">
       <div class="topic-heading">
         <div>
-          <small>GUÍA DE TRABAJO</small>
-          <h2>Inventario vivo de datos y simulaciones</h2>
+          <small>INFORME DE TRABAJO</small>
+          <h2>Inventario vivo de datos, fuentes y simulaciones</h2>
           <p>Esta pestaña resume qué sale de Excel, qué está calculado y qué sigue siendo simulado para priorizar el trabajo</p>
         </div>
       </div>
@@ -232,7 +232,7 @@ function renderGuideSection() {
         <div class="block-head">
           <div>
             <h3>Inventario de fuentes</h3>
-            <p>Guía viva para seguir conectando datos y reducir la simulación</p>
+            <p>Informe vivo para seguir conectando datos y reducir la simulación</p>
           </div>
         </div>
         <div class="guide-table-wrap">
@@ -1606,11 +1606,11 @@ function render() {
     el("summary-kpis").innerHTML = summaryCards("guide");
     el("blocks").innerHTML = renderGuideSection();
     el("s15-section").innerHTML = "";
-    el("subtitle").textContent = "Jerez de la Frontera · Guía viva de trabajo";
-    el("section-kicker").textContent = "GUÍA";
+    el("subtitle").textContent = "Jerez de la Frontera · Informe vivo de trabajo";
+    el("section-kicker").textContent = "INFORME";
     el("section-title").textContent = "Inventario de datos";
     el("section-desc").textContent = "Fuentes reales, mixtas y simuladas";
-    el("sheet-note").textContent = "Esta pestaña se actualizará según vayamos incorporando más datos desde Excel u otras fuentes.";
+    el("sheet-note").textContent = "Este informe se actualizará según vayamos incorporando más datos desde Excel u otras fuentes.";
   } else if (state.view === "s15") {
     el("summary-kpis").innerHTML = summaryCards("s15");
     el("blocks").innerHTML = "";
