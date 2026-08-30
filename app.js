@@ -315,18 +315,18 @@ function renderDiagnosticProfileCards() {
   const sim = window.S2_POINTS_SIMULATED || {
     title: "S2 · Posiciones y recursos del diagnóstico",
     points: [
-      { id: 1, name: "Nº de bodegas abiertas al enoturismo", category: "Bodegas", lat: 36.6869, lng: -6.1388, value: 24 },
-      { id: 2, name: "Nº de bodegas que abren en enero-marzo", category: "Bodegas", lat: 36.6849, lng: -6.1352, value: 19 },
-      { id: 3, name: "Nº de museos y centros de interpretación", category: "Cultura", lat: 36.6902, lng: -6.1295, value: 12 },
-      { id: 4, name: "Nº de instalaciones con reserva online", category: "Digitalización", lat: 36.6924, lng: -6.1322, value: 16 },
-      { id: 5, name: "% de alojamientos con paquete enoturístico", category: "Alojamiento", lat: 36.6798, lng: -6.1248, value: 11 },
-      { id: 6, name: "Nº de empresas de eventos enoturísticos", category: "Eventos", lat: 36.6817, lng: -6.1305, value: 8 },
-      { id: 7, name: "Precio medio de experiencias enoturísticas", category: "Precio", lat: 36.6825, lng: -6.1451, value: 14 },
-      { id: 8, name: "Nº de puntos de información", category: "Servicios", lat: 36.6754, lng: -6.1412, value: 9 },
-      { id: 9, name: "Nº de itinerarios recomendados", category: "Planificación", lat: 36.6888, lng: -6.1185, value: 10 },
-      { id: 10, name: "Nº de experiencias accesibles", category: "Accesibilidad", lat: 36.6972, lng: -6.1141, value: 7 },
-      { id: 11, name: "Nº de visitas guiadas activas", category: "Visitas", lat: 36.6842, lng: -6.1492, value: 15 },
-      { id: 12, name: "Nº de recursos complementarios", category: "Complementarios", lat: 36.6728, lng: -6.1411, value: 6 },
+      { id: 1, name: "Bodega abierta al enoturismo", category: "Bodegas", lat: 36.6869, lng: -6.1388, value: 24 },
+      { id: 2, name: "Bodega con visita todo el año", category: "Bodegas", lat: 36.6849, lng: -6.1352, value: 19 },
+      { id: 3, name: "Centro de interpretación", category: "Cultura", lat: 36.6902, lng: -6.1295, value: 12 },
+      { id: 4, name: "Museo del vino", category: "Cultura", lat: 36.6924, lng: -6.1322, value: 16 },
+      { id: 5, name: "Alojamiento con paquete", category: "Alojamiento", lat: 36.6798, lng: -6.1248, value: 11 },
+      { id: 6, name: "Hotel con oferta enoturística", category: "Alojamiento", lat: 36.6817, lng: -6.1305, value: 8 },
+      { id: 7, name: "Restaurante maridaje", category: "Gastronomía", lat: 36.6825, lng: -6.1451, value: 14 },
+      { id: 8, name: "Ruta de viñedo", category: "Experiencias", lat: 36.6754, lng: -6.1412, value: 9 },
+      { id: 9, name: "Tienda especializada", category: "Comercio", lat: 36.6888, lng: -6.1185, value: 10 },
+      { id: 10, name: "Evento de temporada", category: "Eventos", lat: 36.6972, lng: -6.1141, value: 7 },
+      { id: 11, name: "Cata en bodega", category: "Experiencias", lat: 36.6842, lng: -6.1492, value: 15 },
+      { id: 12, name: "Punto de información", category: "Servicios", lat: 36.6728, lng: -6.1411, value: 6 },
     ],
   };
   const groups = [...new Set(sim.points.map((p) => p.category))];
@@ -391,67 +391,38 @@ function renderDiagnosticProfileCards() {
                 <small>Simulación de puntos S2</small>
               </div>
             </div>
-            <div class="diag-map-note">Nodos simulados del S2 sobre una base local para no depender de teselas externas.</div>
+            <div class="diag-map-note">Puntos agrupados por categoría. El mapa está preparado para cambiar a un JSON real del S2 sin tocar la maquetación.</div>
           </div>
         </div>
         <aside class="diag-map-sidebar">
+          ${topCards.slice(0, 3).map((card, idx) => `
+            <article class="diag-side-card diag-side-card--summary">
+              <div class="diag-side-card__head">
+                <span class="diag-side-card__badge" style="background:${palette[idx % palette.length]}">${idx + 1}</span>
+                <div>
+                  <h3>${card.label}</h3>
+                  <small>${card.note}</small>
+                </div>
+              </div>
+              <div class="diag-side-summary">
+                <strong>${card.value}</strong>
+                <span>Indicador simulado</span>
+              </div>
+            </article>`).join("")}
           <article class="diag-side-card">
             <div class="diag-side-card__head">
-              <span class="diag-side-card__badge" style="background:${palette[0]}">1</span>
+              <span class="diag-side-card__badge" style="background:${palette[3]}">4</span>
               <div>
-                <h3>Capas / indicadores</h3>
-                <small>Nodos del mapa por categoría</small>
+                <h3>Capas activas</h3>
+                <small>Detalle por categorías</small>
               </div>
             </div>
             <div class="diag-side-mini">
-              ${sim.points
-                .filter((point) => point.name.startsWith("Nº") || point.name.startsWith("%"))
-                .slice(0, 6)
-                .map((point, idx) => `
-                  <div class="diag-side-mini__item">
-                    <b>${point.name}</b>
-                    <small>${point.category} · S2</small>
-                  </div>`).join("")}
-            </div>
-          </article>
-          <article class="diag-side-card diag-side-chart">
-            <div class="diag-side-card__head">
-              <span class="diag-side-card__badge" style="background:${palette[2]}">2</span>
-              <div>
-                <h3>Precio medio de experiencias</h3>
-                <small>Tarjeta-gráfico</small>
-              </div>
-            </div>
-            <div class="diag-side-summary">
-              <strong>42 €</strong>
-              <span>Rango 18 € - 96 €</span>
-            </div>
-            <div class="diag-card-chart diag-card-chart--mini">
-              <div class="diag-card-mini">
-                <i style="width:82%;background:${palette[2]}"></i>
-                <i style="width:58%;background:${palette[3]}"></i>
-                <i style="width:36%;background:${palette[4]}"></i>
-              </div>
-              <small>Distribución simulada del precio</small>
-            </div>
-          </article>
-          <article class="diag-side-card diag-side-chart">
-            <div class="diag-side-card__head">
-              <span class="diag-side-card__badge" style="background:${palette[3]}">3</span>
-              <div>
-                <h3>% de alojamientos con paquete</h3>
-                <small>Tarjeta-gráfico</small>
-              </div>
-            </div>
-            <div class="diag-side-summary">
-              <strong>64%</strong>
-              <span>Lectura de temporada</span>
-            </div>
-            <div class="diag-card-chart diag-card-chart--donut">
-              <div class="diag-card-ring" style="background:conic-gradient(${palette[3]} 0 64%, #e9ecf4 64% 100%)">
-                <span>64%</span>
-              </div>
-              <small>Oferta disponible para campaña</small>
+              ${byCategory.map((cat) => `
+                <div class="diag-side-mini__item">
+                  <b>${cat.category}</b>
+                  <small>${cat.items.length} puntos · ${Math.round((cat.total / totalValue) * 1000) / 10}%</small>
+                </div>`).join("")}
             </div>
           </article>
         </aside>
@@ -1518,6 +1489,10 @@ function initLeafletMap() {
     if (!mapEl || mapEl._mapInitialized) return;
     mapEl._mapInitialized = true;
     const map = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([36.686, -6.137], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
     const points = mapEl.dataset.map === "diag-main-map"
       ? [
           { name: "Bodega abierta al enoturismo", coords: [36.6869, -6.1388], category: "Bodegas", color: palette[0] },
@@ -1586,10 +1561,6 @@ function initLeafletMap() {
     } else if (mapEl.dataset.map === "diag-main-map") {
       points.forEach((p) => L.circleMarker(p.coords, { radius: 8, color: p.color, weight: 3, fillColor: "#fff", fillOpacity: 1 }).addTo(map).bindTooltip(`${p.name}<br><small>${p.category}</small>`));
     } else {
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19,
-      }).addTo(map);
       points.forEach((p) => L.marker(p.coords).addTo(map).bindTooltip(p.name));
     }
     requestAnimationFrame(() => map.invalidateSize());

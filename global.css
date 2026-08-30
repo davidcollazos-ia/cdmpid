@@ -259,10 +259,3 @@
 .guide-table-wrap{margin:0}
 .guide-table--report{min-width:100%}
 @media(max-width:1200px){.guide-layout{grid-template-columns:1fr}.guide-sidebar{position:relative;top:auto}.guide-filters{grid-template-columns:1fr 1fr}.guide-table--report{min-width:980px}}
-.leaflet-map[data-map="diag-main-map"]{background:radial-gradient(circle at 25% 20%, rgba(255,36,109,.08), transparent 18%),radial-gradient(circle at 75% 30%, rgba(116,50,196,.08), transparent 18%),radial-gradient(circle at 50% 78%, rgba(35,132,90,.08), transparent 20%),linear-gradient(180deg,#fbfcff,#f2f5ff)}
-.leaflet-map[data-map="diag-main-map"]::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(8,22,79,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(8,22,79,.04) 1px, transparent 1px);background-size:48px 48px;pointer-events:none;border-radius:inherit;opacity:.85}
-.diag-side-chart{display:grid;gap:10px}
-.diag-side-chart .diag-card-chart{min-height:120px;padding:10px}
-.diag-map-dot{position:absolute;transform:translate(-50%,-50%);border:0;background:transparent;padding:0;cursor:default;pointer-events:auto}
-.diag-map-dot span{width:16px;height:16px;border-radius:50%;display:block;background:var(--dot);box-shadow:0 0 0 6px color-mix(in srgb, var(--dot) 18%, transparent),0 8px 16px #15245d22}
-.diag-map-dot small{position:absolute;left:50%;top:22px;transform:translateX(-50%);white-space:nowrap;font-size:9px;font-weight:800;color:var(--navy);background:rgba(255,255,255,.92);border:1px solid #eef0f5;border-radius:999px;padding:3px 7px;box-shadow:0 2px 8px #15245d10}
