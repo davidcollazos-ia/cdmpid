@@ -1002,12 +1002,32 @@ function renderDiagnosticResidentsCards() {
   const total = Math.max(1, citizen.sample_size || 1);
   const topZones = (items, limit = 4) => (items || []).slice(0, limit);
   const pct = (n) => `${Math.round((Number(n || 0) / total) * 1000) / 10}%`;
-  const zoneMap = {
-    "Centro historico": [36.6868, -6.1388],
-    "Barrio de Santiago": [36.6860, -6.1425],
-    "Entorno de bodegas": [36.6808, -6.1258],
-    "Otras zonas del municipio": [36.6958, -6.1345],
-  };
+  const zonePoints = [
+    { label: "Centro histórico", x: 48, y: 40, color: palette[0], value: zones.find(([label]) => /centro/i.test(label))?.[1] || 0 },
+    { label: "Barrio de Santiago", x: 34, y: 56, color: palette[1], value: zones.find(([label]) => /santiago/i.test(label))?.[1] || 0 },
+    { label: "Entorno de bodegas", x: 64, y: 58, color: palette[2], value: zones.find(([label]) => /bodega/i.test(label))?.[1] || 0 },
+    { label: "Otras zonas", x: 72, y: 24, color: palette[3], value: zones.find(([label]) => /otras/i.test(label))?.[1] || 0 },
+  ];
+  const zoneSvg = `
+    <svg viewBox="0 0 100 72" class="resident-map-svg" aria-label="Mapa orientativo de residencia">
+      <defs>
+        <linearGradient id="resGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#f5f7ff"/>
+        </linearGradient>
+      </defs>
+      <rect x="1" y="1" width="98" height="70" rx="10" fill="url(#resGrad)" stroke="#dfe2eb"/>
+      <path d="M14 12 L34 10 L44 18 L58 14 L72 18 L84 34 L76 56 L54 62 L28 58 L18 42 L12 28 Z" fill="#eef1fb" stroke="#dfe2eb"/>
+      <path d="M28 22 L43 18 L55 24 L51 36 L37 38 L26 31 Z" fill="#f9fbff" stroke="#dfe2eb"/>
+      <path d="M57 20 L72 26 L76 39 L64 46 L54 37 L52 28 Z" fill="#f3f6ff" stroke="#dfe2eb"/>
+      ${zonePoints.map((p) => `
+        <circle cx="${p.x}" cy="${p.y}" r="4.6" fill="${p.color}" opacity="0.95"/>
+        <circle cx="${p.x}" cy="${p.y}" r="8.2" fill="${p.color}" opacity="0.14"/>
+      `).join("")}
+      <text x="8" y="68" font-size="4.6" fill="#68708f" font-weight="700">Jerez de la Frontera · mapa de zonas declaradas</text>
+      <text x="10" y="9" font-size="4.4" fill="#08164f" font-weight="700">Centro</text>
+      <text x="62" y="11" font-size="4.4" fill="#08164f" font-weight="700">Bodegas</text>
+    </svg>`;
   return `
     <section class="panel diag-map-panel diag-profile-panel diag-digital-panel">
       <div class="topic-heading">
@@ -1098,7 +1118,9 @@ function renderDiagnosticResidentsCards() {
         <article class="diag-profile-card diag-digital-card diag-residents-map-card">
           <div class="diag-profile-card__head"><div class="diag-profile-card__badge">6</div><div class="diag-profile-card__titles"><h3>Mapa de residencia</h3><p>Zona donde vive o trabaja cada encuestado</p></div></div>
           <div class="map-wrap">
-            <div class="leaflet-map" data-map="residents-map"></div>
+            <div class="resident-map-frame">
+              ${zoneSvg}
+            </div>
             <div class="resource-legend">
               ${topZones(zones, 4).map(([label, value], idx) => `
                 <div class="resource-point">
