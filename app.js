@@ -343,14 +343,6 @@ function renderDiagnosticProfileCards() {
     { label: "Valor agregado", value: `${totalValue}`, note: "Peso relativo de la oferta" },
     { label: "Mapa", value: "Leaflet", note: "Listo para recibir JSON real" },
   ];
-  const minLat = Math.min(...sim.points.map((p) => p.lat));
-  const maxLat = Math.max(...sim.points.map((p) => p.lat));
-  const minLng = Math.min(...sim.points.map((p) => p.lng));
-  const maxLng = Math.max(...sim.points.map((p) => p.lng));
-  const toPos = (point) => ({
-    top: `${100 - ((point.lat - minLat) / Math.max(0.0001, maxLat - minLat)) * 84 - 8}%`,
-    left: `${((point.lng - minLng) / Math.max(0.0001, maxLng - minLng)) * 84 + 8}%`,
-  });
   return `
     <section class="panel diag-map-panel diag-profile-panel">
       <div class="topic-heading">
@@ -378,53 +370,31 @@ function renderDiagnosticProfileCards() {
           </div>
           <div class="diag-map-wrap">
             <div class="leaflet-map" data-map="diag-main-map"></div>
-            <div class="diag-map-overlay">
-              ${sim.points.map((point) => {
-                const pos = toPos(point);
-                return `<button type="button" class="diag-map-dot" style="top:${pos.top};left:${pos.left};--dot:${byCategory.find((cat) => cat.category === point.category)?.color || palette[0]}" title="${point.name}">
-                  <span></span>
-                  <small>${point.name}</small>
-                </button>`;
-              }).join("")}
-              <div class="diag-map-overlay__frame">
-                <span>Jerez</span>
-                <small>Simulación de puntos S2</small>
-              </div>
-            </div>
             <div class="diag-map-note">Puntos agrupados por categoría. El mapa está preparado para cambiar a un JSON real del S2 sin tocar la maquetación.</div>
           </div>
         </div>
         <aside class="diag-map-sidebar">
-          ${topCards.slice(0, 3).map((card, idx) => `
-            <article class="diag-side-card diag-side-card--summary">
-              <div class="diag-side-card__head">
-                <span class="diag-side-card__badge" style="background:${palette[idx % palette.length]}">${idx + 1}</span>
-                <div>
-                  <h3>${card.label}</h3>
-                  <small>${card.note}</small>
+          ${byCategory.map((cat, idx) => {
+            const top = cat.items.slice(0, 3);
+            const pct = totalValue ? Math.round((cat.total / totalValue) * 1000) / 10 : 0;
+            return `
+              <article class="diag-side-card">
+                <div class="diag-side-card__head">
+                  <span class="diag-side-card__badge" style="background:${cat.color}">${idx + 1}</span>
+                  <div>
+                    <h3>${cat.category}</h3>
+                    <small>${cat.items.length} puntos · ${pct}% del valor</small>
+                  </div>
                 </div>
-              </div>
-              <div class="diag-side-summary">
-                <strong>${card.value}</strong>
-                <span>Indicador simulado</span>
-              </div>
-            </article>`).join("")}
-          <article class="diag-side-card">
-            <div class="diag-side-card__head">
-              <span class="diag-side-card__badge" style="background:${palette[3]}">4</span>
-              <div>
-                <h3>Capas activas</h3>
-                <small>Detalle por categorías</small>
-              </div>
-            </div>
-            <div class="diag-side-mini">
-              ${byCategory.map((cat) => `
-                <div class="diag-side-mini__item">
-                  <b>${cat.category}</b>
-                  <small>${cat.items.length} puntos · ${Math.round((cat.total / totalValue) * 1000) / 10}%</small>
-                </div>`).join("")}
-            </div>
-          </article>
+                <div class="diag-side-mini">
+                  ${top.map((item) => `
+                    <div class="diag-side-mini__item">
+                      <b>${item.name}</b>
+                      <small>${item.value} unidades</small>
+                    </div>`).join("")}
+                </div>
+              </article>`;
+          }).join("")}
         </aside>
       </div>
     </section>`;
