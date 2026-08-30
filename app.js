@@ -311,232 +311,91 @@ function renderDiagnosticMap() {
 }
 
 function renderDiagnosticProfileCards() {
-  const dataRows = window.SIM_DIAG_TURISTA?.rows || [];
   const block = state.data.diagnostic.blocks[1];
-  const cleanText = (value) => clean(String(value ?? "").replace(/�/g, "ó"));
-  const fieldByPrefix = (prefix) => (window.SIM_DIAG_TURISTA?.headers || []).find((h) => cleanText(h).startsWith(prefix)) || prefix;
-  const rows = Array.isArray(dataRows) && dataRows.length ? dataRows : [];
-  const total = Math.max(1, rows.length);
-  const counts = (field) => {
-    const counter = new Map();
-    rows.forEach((row) => {
-      const value = cleanText(row[field]);
-      if (!value) return;
-      counter.set(value, (counter.get(value) || 0) + 1);
-    });
-    return [...counter.entries()].sort((a, b) => b[1] - a[1]);
+  const sim = window.S2_POINTS_SIMULATED || {
+    title: "S2 · Posiciones y recursos del diagnóstico",
+    points: [
+      { id: 1, name: "Bodega abierta al enoturismo", category: "Bodegas", lat: 36.6869, lng: -6.1388, value: 24 },
+      { id: 2, name: "Bodega con visita todo el año", category: "Bodegas", lat: 36.6849, lng: -6.1352, value: 19 },
+      { id: 3, name: "Centro de interpretación", category: "Cultura", lat: 36.6902, lng: -6.1295, value: 12 },
+      { id: 4, name: "Museo del vino", category: "Cultura", lat: 36.6924, lng: -6.1322, value: 16 },
+      { id: 5, name: "Alojamiento con paquete", category: "Alojamiento", lat: 36.6798, lng: -6.1248, value: 11 },
+      { id: 6, name: "Hotel con oferta enoturística", category: "Alojamiento", lat: 36.6817, lng: -6.1305, value: 8 },
+      { id: 7, name: "Restaurante maridaje", category: "Gastronomía", lat: 36.6825, lng: -6.1451, value: 14 },
+      { id: 8, name: "Ruta de viñedo", category: "Experiencias", lat: 36.6754, lng: -6.1412, value: 9 },
+      { id: 9, name: "Tienda especializada", category: "Comercio", lat: 36.6888, lng: -6.1185, value: 10 },
+      { id: 10, name: "Evento de temporada", category: "Eventos", lat: 36.6972, lng: -6.1141, value: 7 },
+      { id: 11, name: "Cata en bodega", category: "Experiencias", lat: 36.6842, lng: -6.1492, value: 15 },
+      { id: 12, name: "Punto de información", category: "Servicios", lat: 36.6728, lng: -6.1411, value: 6 },
+    ],
   };
-  const share = (value) => Math.round((value / total) * 1000) / 10;
-  const avgScore = (field) => {
-    const nums = rows
-      .map((row) => Number(String(row[field] ?? "").replace(",", ".")))
-      .filter((n) => Number.isFinite(n));
-    if (!nums.length) return null;
-    return nums.reduce((a, b) => a + b, 0) / nums.length;
-  };
-  const topList = (items, limit = 4) =>
-    items.slice(0, limit).map(([label, value], idx) => ({ label, value, color: palette[idx % palette.length] }));
-  const toPercentItems = (items) => {
-    const totalValue = items.reduce((sum, item) => sum + Number(item.value || 0), 0) || 1;
-    return items.map((item) => ({
-      ...item,
-      value: Math.round((Number(item.value || 0) / totalValue) * 1000) / 10,
-    }));
-  };
-  const pctLegend = (items) => {
-    const totalItems = items.reduce((sum, item) => sum + Number(item.value || 0), 0) || 1;
-    return `<div class="diag-chart-legend">${items
-      .map((item) => {
-        const pct = Math.round((Number(item.value || 0) / totalItems) * 1000) / 10;
-        return `<div><i style="background:${item.color}"></i><span>${item.label}</span><small>${pct}%</small></div>`;
-      })
-      .join("")}</div>`;
-  };
-  const donut = (items, center, unit = "%") => {
-    const totalValue = items.reduce((sum, item) => sum + Number(item.value || 0), 0) || 1;
-    let acc = 0;
-    const arcs = items
-      .map((item) => {
-        const start = (acc / totalValue) * 100;
-        acc += Number(item.value || 0);
-        const end = (acc / totalValue) * 100;
-        return `${item.color} ${start}% ${end}%`;
-      })
-      .join(", ");
-    return `
-      <div class="diag-card-chart diag-card-chart--donut">
-        <div class="diag-card-ring" style="background:conic-gradient(${arcs || `${palette[0]} 0 100%`})">
-          <span>${center}</span>
-        </div>
-        ${pctLegend(items)}
-      </div>`;
-  };
-  const bars = (items, note) => `
-    <div class="diag-card-chart diag-card-chart--bars">
-      <div class="diag-card-bars">
-        ${items.map((item) => `<i style="height:${Math.max(20, Math.min(100, item.value))}%;background:${item.color}" title="${item.label}: ${item.value}"></i>`).join("")}
-      </div>
-      ${pctLegend(items)}
-      <small>${note}</small>
-    </div>`;
-  const hist = (items, note) => `
-    <div class="diag-card-chart diag-card-chart--hist">
-      <div class="diag-card-hist">
-        ${items.map((item) => `<span style="height:${Math.max(20, Math.min(100, item.value))}%;background:${item.color}" title="${item.label}: ${item.value}"></span>`).join("")}
-      </div>
-      ${pctLegend(items)}
-      <small>${note}</small>
-    </div>`;
-  const mini = (items, note) => `
-    <div class="diag-card-chart diag-card-chart--mini">
-      <div class="diag-card-mini">
-        ${items.map((item) => `<i style="width:${Math.max(30, Math.min(100, item.value))}%;background:${item.color}" title="${item.label}: ${item.value}"></i>`).join("")}
-      </div>
-      ${pctLegend(items)}
-      <small>${note}</small>
-    </div>`;
-  const ageLabels = ["18-24", "25-34", "35-44", "45-54", "55-64", "65 o mas"];
-  const ageMale = ageLabels.map((label) => {
-    const ageCount = (counts("Q2 Edad").find(([k]) => k === label)?.[1] || 0);
-    const sexCount = rows.filter((row) => cleanText(row["Q2 Edad"]) === label && cleanText(row["Q3 Sexo"]) === "Hombre").length;
-    return { label, left: Math.round((sexCount / total) * 1000) / 10, right: Math.round(((ageCount - sexCount) / total) * 1000) / 10 };
+  const groups = [...new Set(sim.points.map((p) => p.category))];
+  const byCategory = groups.map((category, idx) => {
+    const items = sim.points.filter((p) => p.category === category);
+    const total = items.reduce((sum, p) => sum + p.value, 0);
+    return { category, items, total, color: palette[idx % palette.length] };
   });
-  const maleTotal = rows.filter((row) => cleanText(row["Q3 Sexo"]) === "Hombre").length;
-  const femaleTotal = rows.filter((row) => cleanText(row["Q3 Sexo"]) === "Mujer").length;
-  const procedencia = counts("Q1 Procedencia");
-  const nacional = procedencia.filter(([label]) => /España/i.test(label));
-  const extranjera = procedencia.filter(([label]) => !/España/i.test(label));
-  const ccaa = procedencia.filter(([label]) => /España - /i.test(label)).map(([label, value]) => [label.replace("España - ", "").trim(), value]);
-  const q18Field = fieldByPrefix("Q18 Satisfaccion global");
-  const q22Field = fieldByPrefix("Q22 NPS");
-  const q23Field = fieldByPrefix("Q23 Intencion de repetir");
-  const q18 = avgScore(q18Field);
-  const q22 = avgScore(q22Field);
-  const q23 = counts(q23Field);
-  const cards = [
-    {
-      title: "Procedencia nacional/extranjera",
-      desc: "Peso de visitantes nacionales frente a extranjeros",
-      foot: "Unidades: % de respuestas",
-      chart: donut(
-        toPercentItems(topList(
-          [
-            ["Nacional", nacional.reduce((a, b) => a + b[1], 0)],
-            ["Extranjera", extranjera.reduce((a, b) => a + b[1], 0)],
-          ],
-          2
-        )),
-        `${share(nacional.reduce((a, b) => a + b[1], 0))}%`
-      ),
-      source: "Q1",
-    },
-    {
-      title: "Procedencia por CCAA",
-      desc: "Origen de los visitantes nacionales",
-      foot: "Solo visitantes de España",
-      chart: bars(toPercentItems(topList(ccaa, 5)), "Distribución territorial por CCAA"),
-      source: "Q1",
-    },
-    {
-      title: "Edad y sexo",
-      desc: "Pirámide de población simulada",
-      foot: `Hombres ${share(maleTotal)}% · Mujeres ${share(femaleTotal)}%`,
-      chart: `
-        <div class="diag-pyramid">
-          <div class="diag-pyramid__chart">
-            ${ageMale.map((item) => `
-              <div class="diag-pyramid__row">
-                <span class="diag-pyramid__label">${item.label}</span>
-                <i class="left" style="width:${Math.max(6, item.left * 3)}%;background:${palette[0]}" title="${item.label} Hombres: ${item.left}%"></i>
-                <i class="right" style="width:${Math.max(6, item.right * 3)}%;background:${palette[1]}" title="${item.label} Mujeres: ${item.right}%"></i>
-              </div>`).join("")}
-          </div>
-          ${pctLegend([
-            { label: "Hombres", value: share(maleTotal), color: palette[0] },
-            { label: "Mujeres", value: share(femaleTotal), color: palette[1] },
-          ])}
-          <div class="diag-chart-note">Anchura proporcional a la muestra total. Lado izquierdo: hombres. Lado derecho: mujeres.</div>
-        </div>`,
-      source: "Q2 / Q3",
-    },
-    {
-      title: "Nivel de ingresos",
-      desc: "Capacidad de gasto declarada",
-      foot: "Unidades: % de respuestas",
-      chart: hist(toPercentItems(topList(counts("Q4 Nivel ingresos"), 4)), "Nivel socioeconómico"),
-      source: "Q4",
-    },
-    {
-      title: "Relación con el vino",
-      desc: "Del aficionado al profesional",
-      foot: "Turista experto vs iniciación",
-      chart: donut(toPercentItems(topList(counts("Q5 Relacion con el vino"), 4)), `${share(counts("Q5 Relacion con el vino")[0]?.[1] || 0)}%`),
-      source: "Q5",
-    },
-    {
-      title: "Compañía de viaje",
-      desc: "Pareja, amigos, familia o grupo",
-      foot: "Formato de experiencia",
-      chart: bars(toPercentItems(topList(counts(fieldByPrefix("Q6 Com")), 5)), "Tipos de compañía"),
-      source: "Q6",
-    },
-    {
-      title: "Duración de la estancia",
-      desc: "Excursión, 1 noche o escapada larga",
-      foot: "Producto de fin de semana",
-      chart: hist(toPercentItems(topList(counts(fieldByPrefix("Q7 Noches en Jerez")), 4)), "Noches en Jerez"),
-      source: "Q7",
-    },
-    {
-      title: "Frecuencia de visita",
-      desc: "Primera visita o repetición",
-      foot: "Fidelidad turística",
-      chart: donut(toPercentItems(topList(counts(fieldByPrefix("Q8 Frecuencia de visita")), 3)), `${share(counts(fieldByPrefix("Q8 Frecuencia de visita"))[0]?.[1] || 0)}%`),
-      source: "Q8",
-    },
-    {
-      title: "Satisfacción y recomendación",
-      desc: "Satisfacción global, NPS e intención de repetir",
-      foot: `${q18 ? `Satisfacción media ${q18.toFixed(1)}/5` : ""}${q18 && q22 ? " · " : ""}${q22 ? `NPS medio ${q22.toFixed(1)}` : ""}${q23.length ? ` · Repite: ${q23[0][0]}` : ""}`,
-      chart: mini(
-        [
-          { label: "Satisfacción", value: Math.round((q18 || 0) / 5 * 100), color: palette[0] },
-          { label: "NPS", value: Math.round((q22 || 0) / 10 * 100), color: palette[1] },
-          { label: "Repetición", value: Math.round(((q23[0]?.[1] || 0) / Math.max(1, rows.length)) * 100), color: palette[2] },
-        ],
-        "Medias y predisposición"
-      ),
-      source: "Q18 / Q22 / Q23",
-    },
+  const totalPoints = sim.points.length;
+  const totalValue = sim.points.reduce((sum, p) => sum + p.value, 0);
+  const topCards = [
+    { label: "Puntos georreferenciados", value: String(totalPoints), note: "Simulación de nodos S2" },
+    { label: "Categorías activas", value: String(groups.length), note: "Capas temáticas" },
+    { label: "Valor agregado", value: `${totalValue}`, note: "Peso relativo de la oferta" },
+    { label: "Mapa", value: "Leaflet", note: "Listo para recibir JSON real" },
   ];
-
   return `
     <section class="panel diag-map-panel diag-profile-panel">
       <div class="topic-heading">
         <div>
-          <small>VISOR DE TARJETAS</small>
+          <small>VISOR DE MAPAS</small>
           <h2>${block.title}</h2>
-          <p>Datos simulados de la encuesta de diagnóstico del turista en Jerez</p>
+          <p>Simulación de puntos del S2: marcadores por categoría, grupos visuales y tarjetas derivadas del mismo JSON</p>
         </div>
       </div>
-      <div class="diag-profile-grid">
-        ${cards
-          .map((card, idx) => `
-            <article class="diag-profile-card">
-              <div class="diag-profile-card__head">
-                <div class="diag-profile-card__badge">${idx + 1}</div>
-                <div class="diag-profile-card__titles">
-                  <h3>${card.title}</h3>
-                  <p>${card.desc}</p>
+      <div class="diag-top-kpis">
+        ${topCards.map((card, idx) => `
+          <article class="diag-top-kpi">
+            <div class="diag-top-kpi__icon" style="background:${palette[idx % palette.length]}"></div>
+            <div>
+              <strong>${card.value}</strong>
+              <span>${card.label}</span>
+              <small>${card.note}</small>
+            </div>
+          </article>`).join("")}
+      </div>
+      <div class="diag-map-layout">
+        <div class="diag-map-panel-main">
+          <div class="diag-map-toolbar">
+            ${byCategory.map((cat) => `<span style="--swatch:${cat.color}"><i></i>${cat.category}</span>`).join("")}
+          </div>
+          <div class="diag-map-wrap">
+            <div class="leaflet-map" data-map="diag-main-map"></div>
+            <div class="diag-map-note">Puntos agrupados por categoría. El mapa está preparado para cambiar a un JSON real del S2 sin tocar la maquetación.</div>
+          </div>
+        </div>
+        <aside class="diag-map-sidebar">
+          ${byCategory.map((cat, idx) => {
+            const top = cat.items.slice(0, 3);
+            const pct = totalValue ? Math.round((cat.total / totalValue) * 1000) / 10 : 0;
+            return `
+              <article class="diag-side-card">
+                <div class="diag-side-card__head">
+                  <span class="diag-side-card__badge" style="background:${cat.color}">${idx + 1}</span>
+                  <div>
+                    <h3>${cat.category}</h3>
+                    <small>${cat.items.length} puntos · ${pct}% del valor</small>
+                  </div>
                 </div>
-              </div>
-              ${card.chart}
-              <div class="diag-profile-card__foot">
-                <span>${card.source}</span>
-                <small>${card.foot}</small>
-              </div>
-            </article>`)
-          .join("")}
+                <div class="diag-side-mini">
+                  ${top.map((item) => `
+                    <div class="diag-side-mini__item">
+                      <b>${item.name}</b>
+                      <small>${item.value} unidades</small>
+                    </div>`).join("")}
+                </div>
+              </article>`;
+          }).join("")}
+        </aside>
       </div>
     </section>`;
 }
@@ -1532,6 +1391,9 @@ function render() {
             : renderDiagnosticMap();
       el("blocks").innerHTML = renderDiagnosticTabs() + diagnosticPanel;
       el("blocks").classList.add("diagnostic-view");
+      if (state.diagnosticTab === 1) {
+        requestAnimationFrame(initLeafletMap);
+      }
     } else {
       el("blocks").classList.remove("diagnostic-view");
       const sizes = [4, 3];
@@ -1591,7 +1453,7 @@ function render() {
 }
 
 function initLeafletMap() {
-  const mapEls = document.querySelectorAll('[data-map="jerez-map"], [data-map="resources-map"], [data-map="residents-map"]');
+  const mapEls = document.querySelectorAll('[data-map="jerez-map"], [data-map="resources-map"], [data-map="residents-map"], [data-map="diag-main-map"]');
   if (!window.L) return;
   mapEls.forEach((mapEl) => {
     if (!mapEl || mapEl._mapInitialized) return;
@@ -1601,12 +1463,27 @@ function initLeafletMap() {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(map);
-    const points = mapEl.dataset.map === "resources-map"
+    const points = mapEl.dataset.map === "diag-main-map"
       ? [
-          { name: 'Bodegas abiertas al enoturismo', coords: [36.6868, -6.1388] },
-          { name: 'Museo / centro de interpretación', coords: [36.6902, -6.1295] },
-          { name: 'Alojamiento con paquete', coords: [36.6798, -6.1248] },
-          { name: 'Ruta de viñedo en poda', coords: [36.6844, -6.1492] },
+          { name: "Bodega abierta al enoturismo", coords: [36.6869, -6.1388], category: "Bodegas", color: palette[0] },
+          { name: "Bodega con visita todo el año", coords: [36.6849, -6.1352], category: "Bodegas", color: palette[0] },
+          { name: "Centro de interpretación", coords: [36.6902, -6.1295], category: "Cultura", color: palette[1] },
+          { name: "Museo del vino", coords: [36.6924, -6.1322], category: "Cultura", color: palette[1] },
+          { name: "Alojamiento con paquete", coords: [36.6798, -6.1248], category: "Alojamiento", color: palette[2] },
+          { name: "Hotel con oferta enoturística", coords: [36.6817, -6.1305], category: "Alojamiento", color: palette[2] },
+          { name: "Restaurante maridaje", coords: [36.6825, -6.1451], category: "Gastronomía", color: palette[3] },
+          { name: "Ruta de viñedo", coords: [36.6754, -6.1412], category: "Experiencias", color: palette[4] },
+          { name: "Tienda especializada", coords: [36.6888, -6.1185], category: "Comercio", color: palette[5] },
+          { name: "Evento de temporada", coords: [36.6972, -6.1141], category: "Eventos", color: palette[3] },
+          { name: "Cata en bodega", coords: [36.6842, -6.1492], category: "Experiencias", color: palette[4] },
+          { name: "Punto de información", coords: [36.6728, -6.1411], category: "Servicios", color: palette[5] },
+        ]
+      : mapEl.dataset.map === "resources-map"
+        ? [
+            { name: 'Bodegas abiertas al enoturismo', coords: [36.6868, -6.1388] },
+            { name: 'Museo / centro de interpretación', coords: [36.6902, -6.1295] },
+            { name: 'Alojamiento con paquete', coords: [36.6798, -6.1248] },
+            { name: 'Ruta de viñedo en poda', coords: [36.6844, -6.1492] },
           { name: 'Patrimonio complementario', coords: [36.6982, -6.1142] },
           { name: 'Oferta gastronómica', coords: [36.6724, -6.1411] },
         ]
@@ -1622,7 +1499,40 @@ function initLeafletMap() {
           { name: 'Barrio de Santiago', coords: [36.6860, -6.1425] },
           { name: 'Entorno de bodegas', coords: [36.6808, -6.1258] },
         ];
-    points.forEach((p) => L.marker(p.coords).addTo(map).bindTooltip(p.name));
+    if (mapEl.dataset.map === "diag-main-map" && L.markerClusterGroup) {
+      const clusterGroups = new Map();
+      points.forEach((p) => {
+        if (!clusterGroups.has(p.category)) {
+          clusterGroups.set(p.category, L.markerClusterGroup({
+            iconCreateFunction: (cluster) => {
+              const count = cluster.getChildCount();
+              return L.divIcon({
+                html: `<div style="background:${p.color};color:#fff;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;box-shadow:0 8px 16px #15245d18">${count}</div>`,
+                className: "",
+                iconSize: [36, 36],
+              });
+            },
+          }));
+        }
+        const marker = L.circleMarker(p.coords, {
+          radius: 8,
+          color: p.color,
+          weight: 3,
+          fillColor: "#fff",
+          fillOpacity: 1,
+        }).bindTooltip(`${p.name}<br><small>${p.category}</small>`);
+        clusterGroups.get(p.category).addLayer(marker);
+      });
+      clusterGroups.forEach((group) => group.addTo(map));
+      if (clusterGroups.size) {
+        const bounds = L.latLngBounds(points.map((p) => p.coords));
+        map.fitBounds(bounds.pad(0.15));
+      }
+    } else if (mapEl.dataset.map === "diag-main-map") {
+      points.forEach((p) => L.circleMarker(p.coords, { radius: 8, color: p.color, weight: 3, fillColor: "#fff", fillOpacity: 1 }).addTo(map).bindTooltip(`${p.name}<br><small>${p.category}</small>`));
+    } else {
+      points.forEach((p) => L.marker(p.coords).addTo(map).bindTooltip(p.name));
+    }
     requestAnimationFrame(() => map.invalidateSize());
     setTimeout(() => map.invalidateSize(), 150);
   });
