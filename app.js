@@ -12,6 +12,10 @@ const state = {
     sortKey: "periodo",
     sortDir: "desc",
   },
+  guide: {
+    section: "all",
+    type: "all",
+  },
 };
 
 const palette = ["#ff246d", "#7432c4", "#23845a", "#ff7a18", "#3066fe", "#14b8a6"];
@@ -226,17 +230,35 @@ function guideTraceForDiagnostic(row, blockTitle) {
   };
 }
 
-function renderGuideSection() {
+function buildGuideDiagnosticRows() {
   const diagnosticBlocks = state.data?.diagnostic?.blocks || [];
-  const guideCards = diagnosticBlocks.map((block, idx) => {
-    const cards = block.rows.filter((row) => clean(row[0]) && !/^Bloque/.test(clean(row[0]))).map((row) => guideTraceForDiagnostic(row, block.title));
-    return { title: block.title, cards, total: cards.length, idx: idx + 1 };
+  return diagnosticBlocks.flatMap((block, idx) =>
+    block.rows
+      .filter((row) => clean(row[0]) && !/^Bloque/.test(clean(row[0])))
+      .map((row) => {
+        const trace = guideTraceForDiagnostic(row, block.title);
+        return {
+          section: "Diagnóstico",
+          tabIndex: idx + 1,
+          tab: block.title,
+          ...trace,
+        };
+      })
+  );
+}
+
+function renderGuideSection() {
+  const guideRows = buildGuideDiagnosticRows();
+  const filteredRows = guideRows.filter((row) => {
+    if (state.guide.section !== "all" && normalize(row.section) !== state.guide.section) return false;
+    if (state.guide.type !== "all" && normalize(row.tipo) !== state.guide.type) return false;
+    return true;
   });
   const guideLabels = [
     ["Diagnóstico", "10", "Bloques temáticos"],
-    ["Tarjetas", String(guideCards.reduce((sum, block) => sum + block.total, 0)), "Indicadores y bloques"],
-    ["Excel reales", "3", "Fuentes ya conectadas"],
-    ["Simulados", "Resto", "Pendientes por reemplazar"],
+    ["Tarjetas", String(guideRows.length), "Indicadores y bloques"],
+    ["Excel reales", String(guideRows.filter((row) => row.tipo.toLowerCase().includes("real")).length), "Conectadas"],
+    ["Simulados", String(guideRows.filter((row) => row.tipo.toLowerCase().includes("simulado")).length), "Pendientes"],
   ];
   return `
     <section class="panel guide-panel">
@@ -266,42 +288,57 @@ function renderGuideSection() {
           <button type="button" disabled><span>4</span><div><b>Coyuntura / resto</b><small>Pendiente</small></div></button>
         </aside>
         <div class="guide-content">
-          <div class="guide-notes guide-notes--compact">
-            <article class="guide-note">
-              <h4>Diagnóstico</h4>
-              <p>Los 10 bloques se muestran como bloques independientes para revisar la trazabilidad tarjeta por tarjeta.</p>
-            </article>
-            <article class="guide-note">
-              <h4>Lectura</h4>
-              <p>Si la tarjeta usa Excel, verás el archivo, la hoja y el campo; si no existe aún fuente real, se marcará como simulada.</p>
-            </article>
+          <div class="guide-filters panel">
+            <div class="guide-filter">
+              <label>Sección</label>
+              <select data-guide-filter="section">
+                <option value="all" ${state.guide.section === "all" ? "selected" : ""}>Todas</option>
+                <option value="diagnóstico" ${state.guide.section === "diagnóstico" ? "selected" : ""}>Diagnóstico</option>
+              </select>
+            </div>
+            <div class="guide-filter">
+              <label>Tipo</label>
+              <select data-guide-filter="type">
+                <option value="all" ${state.guide.type === "all" ? "selected" : ""}>Todos</option>
+                <option value="real" ${state.guide.type === "real" ? "selected" : ""}>Real</option>
+                <option value="simulado" ${state.guide.type === "simulado" ? "selected" : ""}>Simulado</option>
+                <option value="real/derivado" ${state.guide.type === "real/derivado" ? "selected" : ""}>Real / derivado</option>
+                <option value="mixto" ${state.guide.type === "mixto" ? "selected" : ""}>Mixto</option>
+              </select>
+            </div>
+            <div class="guide-filter guide-filter--meta">
+              <label>Filtrados</label>
+              <strong>${filteredRows.length}</strong>
+            </div>
           </div>
-          <div class="guide-blocks">
-            ${guideCards.map((block) => `
-              <article class="guide-block">
-                <div class="guide-block__head">
-                  <div>
-                    <h3>${block.idx}. ${block.title.replace(/^\d+\.\s*/, "")}</h3>
-                    <p>${block.total} tarjetas / indicadores</p>
-                  </div>
-                  <span>${block.total}</span>
-                </div>
-                <div class="guide-cards">
-                  ${block.cards.map((card) => `
-                    <div class="guide-card">
-                      <div class="guide-card__head">
-                        <b>${card.indicador}</b>
-                        <span class="guide-pill guide-pill--${normalize(card.tipo)}">${card.tipo}</span>
-                      </div>
-                      <div class="guide-card__grid">
-                        <div><small>Fuente</small><strong>${card.fuente}</strong></div>
-                        <div><small>Excel</small><strong>${card.excel}</strong></div>
-                        <div><small>Hoja</small><strong>${card.hoja}</strong></div>
-                        <div><small>Campo usado</small><strong>${card.campo}</strong></div>
-                      </div>
-                    </div>`).join("")}
-                </div>
-              </article>`).join("")}
+          <div class="guide-table-wrap">
+            <table class="guide-table guide-table--report">
+              <thead>
+                <tr>
+                  <th>Sección</th>
+                  <th>Pestaña</th>
+                  <th>Indicador</th>
+                  <th>Tipo</th>
+                  <th>Fuente</th>
+                  <th>Excel</th>
+                  <th>Hoja</th>
+                  <th>Campo usado</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredRows.map((row) => `
+                  <tr>
+                    <td>${row.section}</td>
+                    <td>${row.tabIndex}. ${clean(row.tab.replace(/^\d+\.\s*/, ""))}</td>
+                    <td><strong>${row.indicador}</strong></td>
+                    <td><span class="guide-pill guide-pill--${normalize(row.tipo)}">${row.tipo}</span></td>
+                    <td>${row.fuente}</td>
+                    <td>${row.excel}</td>
+                    <td>${row.hoja}</td>
+                    <td>${row.campo}</td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1729,6 +1766,11 @@ function render() {
       const sortKey = event.target.closest("[data-coyuntura-sort-key]");
       if (sortKey && blocksEl.contains(sortKey)) {
         state.coyuntura.sortKey = sortKey.value;
+        render();
+      }
+      const guideFilter = event.target.closest("[data-guide-filter]");
+      if (guideFilter && blocksEl.contains(guideFilter)) {
+        state.guide[guideFilter.dataset.guideFilter] = guideFilter.value;
         render();
       }
     });
