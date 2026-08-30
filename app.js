@@ -1574,10 +1574,11 @@ function initLeafletMap() {
   mapEls.forEach((mapEl) => {
     if (!mapEl || mapEl._mapInitialized) return;
     mapEl._mapInitialized = true;
-    const map = L.map(mapEl, { zoomControl: false, scrollWheelZoom: false }).setView([36.686, -6.137], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
-  }).addTo(map);
+    const map = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([36.686, -6.137], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
     const points = mapEl.dataset.map === "resources-map"
       ? [
           { name: 'Bodegas abiertas al enoturismo', coords: [36.6868, -6.1388] },
@@ -1594,12 +1595,14 @@ function initLeafletMap() {
             { name: 'Entorno de bodegas', coords: [36.6808, -6.1258] },
             { name: 'Otras zonas del municipio', coords: [36.6958, -6.1345] },
           ]
-      : [
+        : [
           { name: 'Centro histórico', coords: [36.6868, -6.1388] },
           { name: 'Barrio de Santiago', coords: [36.6860, -6.1425] },
           { name: 'Entorno de bodegas', coords: [36.6808, -6.1258] },
         ];
     points.forEach((p) => L.marker(p.coords).addTo(map).bindTooltip(p.name));
+    requestAnimationFrame(() => map.invalidateSize());
+    setTimeout(() => map.invalidateSize(), 150);
   });
 }
 
