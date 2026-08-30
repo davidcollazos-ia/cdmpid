@@ -203,10 +203,10 @@ function renderGuideSection() {
     ["Tarjetas manuales", "app.js", "Bloques visuales de diseño", "Pestañas 3, 5, 6 y 10", "Simulado", "Se irán sustituyendo por dato real cuando exista fuente"],
   ];
   const guideLabels = [
-    ["Fuentes reales", "4", "Excel convertidos a JS"],
-    ["Vistas conectadas", "6", "Ya leen datos o agregados reales"],
-    ["Bloques simulados", "Parcial", "Todavía quedan maquetas"],
-    ["Estado", "Vivo", "El informe se actualizará con cada avance"],
+    ["Diagnóstico", "1-10", "Bloques base del cuadro de mando"],
+    ["Resultado", "1-10", "Bloques con datos simulados"],
+    ["Encuestas", "S15", "Perfil, comportamiento y satisfacción"],
+    ["Coyuntura / resto", "9-10", "Coyuntura, residentes y medioambiente"],
   ];
   return `
     <section class="panel guide-panel">
@@ -214,7 +214,7 @@ function renderGuideSection() {
         <div>
           <small>INFORME DE TRABAJO</small>
           <h2>Inventario vivo de datos, fuentes y simulaciones</h2>
-          <p>Esta pestaña resume qué sale de Excel, qué está calculado y qué sigue siendo simulado para priorizar el trabajo</p>
+          <p>El informe ya no se centra solo en diagnóstico: separa diagnóstico, resultado, encuestas y el resto de secciones para ver qué está conectado y qué sigue simulado</p>
         </div>
       </div>
       <div class="kpis guide-kpis">
@@ -234,6 +234,16 @@ function renderGuideSection() {
             <h3>Inventario de fuentes</h3>
             <p>Informe vivo para seguir conectando datos y reducir la simulación</p>
           </div>
+        </div>
+        <div class="guide-notes guide-notes--compact">
+          <article class="guide-note">
+            <h4>Diagnóstico</h4>
+            <p>Incluye los bloques 1 a 10 de la hoja de partida. Aquí hay mezcla de datos reales y simulados, con más peso en el bloque 2, 3, 5, 6, 8, 9 y 10 según la fuente.</p>
+          </article>
+          <article class="guide-note">
+            <h4>Resultado, encuestas y resto</h4>
+            <p>Resultado conserva la misma estructura visual con simulación; encuestas S15 alimentan perfil, comportamiento y satisfacción; coyuntura y residentes salen de sus hojas específicas.</p>
+          </article>
         </div>
         <div class="guide-table-wrap">
           <table class="guide-table">
