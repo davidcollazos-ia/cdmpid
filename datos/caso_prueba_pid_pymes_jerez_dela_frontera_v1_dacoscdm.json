@@ -1,0 +1,70 @@
+{
+  "sheet": "Datos",
+  "section": "prevision",
+  "rows": [
+    {
+      "seccion": "prevision",
+      "id": "indice_demanda_semana",
+      "indicador": "Indice de demanda prevista",
+      "valor": null,
+      "unidad": "indice_0_100",
+      "periodo": "2025-W23",
+      "periodo_comparacion": "2024-W23",
+      "valor_comparacion": null,
+      "variacion_pct": null,
+      "nivel": "semana",
+      "segmento": "02-08 junio",
+      "fuente_dataset": "Conectividad aerea busquedas y reservas / modelo demo",
+      "fuente_url": "https://www.dataestur.es/apidata/",
+      "calidad_dato": "demo_no_oficial"
+    },
+    {
+      "seccion": "prevision",
+      "id": "indice_demanda_semana",
+      "indicador": "Indice de demanda prevista",
+      "valor": null,
+      "unidad": "indice_0_100",
+      "periodo": "2025-W24",
+      "periodo_comparacion": "2024-W24",
+      "valor_comparacion": null,
+      "variacion_pct": null,
+      "nivel": "semana",
+      "segmento": "09-15 junio",
+      "fuente_dataset": "Conectividad aerea busquedas y reservas / modelo demo",
+      "fuente_url": "https://www.dataestur.es/apidata/",
+      "calidad_dato": "demo_no_oficial"
+    },
+    {
+      "seccion": "prevision",
+      "id": "indice_demanda_semana",
+      "indicador": "Indice de demanda prevista",
+      "valor": null,
+      "unidad": "indice_0_100",
+      "periodo": "2025-W25",
+      "periodo_comparacion": "2024-W25",
+      "valor_comparacion": null,
+      "variacion_pct": null,
+      "nivel": "semana",
+      "segmento": "16-22 junio",
+      "fuente_dataset": "Conectividad aerea busquedas y reservas / modelo demo",
+      "fuente_url": "https://www.dataestur.es/apidata/",
+      "calidad_dato": "demo_no_oficial"
+    },
+    {
+      "seccion": "prevision",
+      "id": "indice_demanda_semana",
+      "indicador": "Indice de demanda prevista",
+      "valor": null,
+      "unidad": "indice_0_100",
+      "periodo": "2025-W26",
+      "periodo_comparacion": "2024-W26",
+      "valor_comparacion": null,
+      "variacion_pct": null,
+      "nivel": "semana",
+      "segmento": "23-29 junio",
+      "fuente_dataset": "Conectividad aerea busquedas y reservas / modelo demo",
+      "fuente_url": "https://www.dataestur.es/apidata/",
+      "calidad_dato": "demo_no_oficial"
+    }
+  ]
+}

@@ -1,0 +1,1204 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cuadro de mando - Enoturismo Jerez</title>
+    <link rel="stylesheet" href="./global.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  </head>
+  <body>
+    <main>
+      <div class="dashboard-shell">
+        <aside class="topic-menu">
+          <div class="menu-toggle">
+            <img class="pid-logo" src="./pid-logo.png" alt="PID - Plataforma inteligente de destinos" />
+          </div>
+          <nav>
+            <button class="active" data-view="diagnostic">
+              <span>1</span>
+              <div>
+                <b>Diagnóstico</b>
+                <small>10 bloques con la situación base</small>
+              </div>
+            </button>
+            <button data-view="result">
+              <span>2</span>
+              <div>
+                <b>Resultado</b>
+                <small>10 bloques con datos simulados</small>
+              </div>
+            </button>
+            <button data-view="s15">
+              <span>3</span>
+              <div>
+                <b>Encuestas</b>
+                <small>Resultados S15 de las respuestas</small>
+              </div>
+            </button>
+          </nav>
+        </aside>
+
+        <section class="topic-content">
+          <div class="topbar">
+            <div class="heading">
+              <small>RESUMEN</small>
+              <h1 class="title-line"><span>CUADRO DE MANDO DE ENOTURISMO</span><span class="title-city"> - Jerez de la Frontera</span></h1>
+              <p id="subtitle"></p>
+            </div>
+          </div>
+
+          <section class="kpis" id="summary-kpis"></section>
+
+          <section class="panel">
+            <div class="topic-heading">
+              <div>
+                <small id="section-kicker">TEMÁTICA</small>
+                <h2 id="section-title">Diagnóstico</h2>
+                <p id="section-desc">Indicadores clave y rendimiento</p>
+              </div>
+            </div>
+            <p class="sheet-note" id="sheet-note"></p>
+            <div class="topic-grid" id="blocks"></div>
+            <div id="s15-section"></div>
+          </section>
+        </section>
+      </div>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./datos/caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js"></script>
+    <script>
+window.DASHBOARD_DATA = {
+  "diagnostic": {
+    "sheet": "1. CM Diagnostico Destino",
+    "title": "CUADRO DE MANDO DE DIAGNOSTICO · ENOTURISMO EN JEREZ DE LA FRONTERA (situacion de partida, sin accion de invierno)",
+    "subtitle": "Adaptado del catalogo de indicadores del \"Cuadro de mando del Enoturismo\" de referencia. Es un cuadro de mando VIVO y PERMANENTE (no puntual): se alimenta durante todo el año con datos de coyuntura, oferta, perfil del enoturista, comportamiento, satisfaccion, reputacion y vision de los residentes. Los indicadores marcados con fuente S15 se recogen mediante la encuesta CONTINUA de la pestaña 2 (Encuesta Turista, administrada todo el año), y son la base de comparacion (\"situacion sin accion\") frente a la que se valorara, en la pestaña 5, el efecto de la accion de fomento del enoturismo de invierno.",
+    "blocks": [
+      {
+        "title": "1. OFERTA ENOTURISTICA",
+        "rows": [
+          [
+            "Nº de bodegas abiertas al enoturismo",
+            "Cuantas bodegas del Marco de Jerez reciben visitas todo el año vs. solo en vendimia/Navidad.",
+            "Cuantifica la base de oferta disponible para construir el producto de enero-marzo.",
+            "S2",
+            "Trimestral"
+          ],
+          [
+            "Nº de bodegas que abren en enero-marzo",
+            "De las anteriores, cuantas mantienen actividad enoturistica en temporada baja real.",
+            "Es EL indicador clave de partida: cuanto menor, mayor es la brecha de estacionalidad a cerrar.",
+            "S2",
+            "Trimestral"
+          ],
+          [
+            "Nº de museos y centros de interpretacion (vino, Alcazar, Atalaya…)",
+            "Recursos complementarios a la bodega.",
+            "Permite combinar producto y evitar depender solo de la visita a bodega.",
+            "S2",
+            "Trimestral"
+          ],
+          [
+            "Nº de instalaciones enoturisticas con canales de reserva online",
+            "Bodegas/recursos reservables desde Portal/App.",
+            "Indica el grado de digitalizacion de la oferta que se puede activar en la campaña.",
+            "S2",
+            "Trimestral"
+          ],
+          [
+            "% de establecimientos de alojamiento con paquete enoturistico",
+            "Hoteles/hostales que ofertan combinados con bodega o experiencias de temporada.",
+            "Mide la implicacion del sector alojativo en la desestacionalizacion.",
+            "S2",
+            "Semestral"
+          ],
+          [
+            "Nº de empresas de organizacion de eventos enoturisticos (catas de empresa, eventos MICE en bodega…)",
+            null,
+            "Detecta si existe ya una oferta de eventos de invierno mas alla de la campaña de Navidad.",
+            "S2",
+            "Trimestral"
+          ],
+          [
+            "Precio medio (min-max) de experiencias enoturisticas",
+            "Rango de precios de visita+cata en el destino.",
+            "Referencia para fijar el precio del producto de invierno.",
+            "S2",
+            "Semestral"
+          ]
+        ]
+      },
+      {
+        "title": "2. PERFIL DEL ENOTURISTA",
+        "rows": [
+          [
+            "Procedencia",
+            "Pais/CCAA/provincia de origen del visitante de bodega.",
+            "Permite decidir en que mercados promocionar la campaña de invierno (nacional de cercania vs. internacional).",
+            "S7 / S15",
+            "Mensual"
+          ],
+          [
+            "Edad del visitante",
+            "Franjas de edad del enoturista en Jerez.",
+            "Ajusta el tono y canal de la comunicacion (p.ej. publico sub-35 vs. senior).",
+            "S7 / S15",
+            "Trimestral"
+          ],
+          [
+            "Sexo del visitante",
+            null,
+            "Segmentacion basica de campañas.",
+            "S7 / S15",
+            "Trimestral"
+          ],
+          [
+            "Nivel socioeconomico",
+            null,
+            "Ayuda a fijar el precio y el posicionamiento premium/accesible del producto.",
+            "S15",
+            "Semestral"
+          ],
+          [
+            "Relacion profesional con el mundo del vino (aficionado, profesional, prescriptor…)",
+            null,
+            "Distingue el turista experto (busca verticales/soleras) del turista de iniciacion (busca experiencia sencilla).",
+            "S15",
+            "Semestral"
+          ],
+          [
+            "Composicion de la unidad de viaje (pareja, familia, amigos, grupo organizado)",
+            null,
+            "Define el formato de experiencia (duracion, si admite niños, tamaño de grupo).",
+            "S7 / S8 / S15",
+            "Trimestral"
+          ],
+          [
+            "Idiomas utilizados en consultas",
+            "Español, ingles, frances… detectado en Asistente/consultas.",
+            "Orienta la necesidad de guías/material en otros idiomas para enero-marzo.",
+            "S3",
+            "Trimestral"
+          ],
+          [
+            "Duracion de la estancia",
+            "Excursion de un dia, 1 noche, 2-3 noches…",
+            "Indica si el visitante de invierno pernocta o no, clave para diseñar producto de fin de semana largo.",
+            "S7 / S8 / S15",
+            "Trimestral"
+          ],
+          [
+            "Fidelidad turistica - frecuencia (primera visita, recurrente, prescriptor)",
+            null,
+            "Mide si el producto de invierno esta generando turistas recurrentes que vuelven en otras fechas de la temporada baja.",
+            "S15",
+            "Anual"
+          ]
+        ]
+      },
+      {
+        "title": "3. INTERES DIGITAL POR EL ENOTURISMO",
+        "rows": [
+          [
+            "Recursos e instalaciones enoturisticas mas consultados",
+            "Bodegas y museos mas buscados en Web/App/Asistente.",
+            "Identifica que bodegas conviene priorizar como cabeza de cartel de la campaña.",
+            "S3 / S4 / S8",
+            "Mensual"
+          ],
+          [
+            "Tendencias de consulta sobre enoturismo",
+            "Evolucion de busquedas relacionadas con vino, bodegas y enoturismo de invierno.",
+            "Detecta si el interes por el enoturismo decae realmente tras diciembre o se mantiene latente.",
+            "S8",
+            "Mensual"
+          ],
+          [
+            "Medios de inspiracion-preparacion del viaje",
+            "Web oficial, redes sociales, buscadores, recomendacion…",
+            "Orienta donde concentrar la inversion en promocion digital de enero-marzo.",
+            "S15",
+            "Semestral"
+          ],
+          [
+            "Nº de itinerarios creados relacionados con enoturismo (Planificador)",
+            null,
+            "Mide si el visitante ya combina bodega con otros recursos por iniciativa propia.",
+            "S21",
+            "Mensual"
+          ]
+        ]
+      },
+      {
+        "title": "4. PROMOCION Y MARKETING ENOTURISTICO",
+        "rows": [
+          [
+            "Visitas a paginas/campañas enoturisticas (landing de invierno, web Marco de Jerez)",
+            null,
+            "Termometro de partida del interes generado por la comunicacion actual de invierno.",
+            "S4",
+            "Mensual"
+          ],
+          [
+            "Tasa de conversion de campañas (visita -> reserva)",
+            null,
+            "Detecta si el problema de partida es de atraccion (pocas visitas) o de conversion (muchas visitas, pocas reservas).",
+            "S4",
+            "Mensual"
+          ],
+          [
+            "Origen del trafico (organico, redes, campañas de pago)",
+            null,
+            "Ayuda a decidir el mix de medios de la futura campaña.",
+            "S3 / S4",
+            "Mensual"
+          ]
+        ]
+      },
+      {
+        "title": "5. COMPORTAMIENTO DEL ENOTURISTA EN DESTINO",
+        "rows": [
+          [
+            "Recursos e instalaciones enoturisticas visitados",
+            "Bodegas y museos realmente visitados (no solo consultados).",
+            "Contrasta interes digital con visita real.",
+            "S7",
+            "Mensual"
+          ],
+          [
+            "Eventos enologicos visitados (catas, ferias, jornadas de puertas abiertas en bodega)",
+            null,
+            "Mide el peso real de los eventos enologicos dentro del consumo enoturistico de invierno.",
+            "S7",
+            "Mensual"
+          ],
+          [
+            "Actividades realizadas (visita, cata, maridaje, compra en tienda, ruta a pie…)",
+            null,
+            "Detecta que combinacion de actividades funciona mejor para replicarla en el diseño del producto.",
+            "S15",
+            "Trimestral"
+          ],
+          [
+            "Medio de transporte utilizado",
+            "Coche propio, autobus turistico, a pie desde el centro…",
+            "Relevante en Jerez por la dispersion de bodegas fuera del casco historico.",
+            "S15",
+            "Trimestral"
+          ],
+          [
+            "Tipo de alojamiento utilizado",
+            null,
+            "Cruza con pernoctacion para valorar paquetes hotel+bodega.",
+            "S15",
+            "Trimestral"
+          ],
+          [
+            "Tipo de oferta gastronomica elegida",
+            "Tapeo, restaurante con menu maridado, venta de vino…",
+            "Orienta la oferta gastronomica a incluir en el producto de invierno.",
+            "S15",
+            "Trimestral"
+          ],
+          [
+            "Gasto medio del enoturista e impacto total",
+            null,
+            "Base para el calculo de retorno economico de la campaña.",
+            "S15",
+            "Trimestral"
+          ],
+          [
+            "Gasto medio en instalaciones/restauracion/alojamiento/eventos enoturisticos",
+            null,
+            "Detalle del gasto por partidas, util para orientar a las bodegas sobre venta cruzada.",
+            "S15",
+            "Trimestral"
+          ],
+          [
+            "Impuestos generados por el enoturismo (IVA)",
+            null,
+            "Argumento de retorno fiscal ante el Ayuntamiento y la D.O.",
+            "-",
+            "Anual"
+          ]
+        ]
+      },
+      {
+        "title": "6. SATISFACCION DEL ENOTURISTA",
+        "rows": [
+          [
+            "Nivel de satisfaccion con el destino (experiencia global)",
+            null,
+            "Linea base antes de lanzar la campaña de invierno.",
+            "S15 / S16",
+            "Trimestral"
+          ],
+          [
+            "Grado de satisfaccion por aspectos (transporte, señalizacion, bodegas, alojamiento, gastronomia, precio-calidad, atencion…)",
+            null,
+            "Detecta debilidades concretas a corregir antes de la campaña (p.ej. señalizacion a bodegas alejadas del centro).",
+            "S15 / S16",
+            "Trimestral"
+          ],
+          [
+            "Aspectos mas atractivos / a mejorar del destino enoturistico",
+            null,
+            "Insumo directo para el guion de la campaña de comunicacion.",
+            "S15 / S16",
+            "Trimestral"
+          ],
+          [
+            "Indice de recomendacion del destino (NPS)",
+            null,
+            "Mide prescripcion, clave para el efecto \"boca-oido\" tras la campaña de invierno.",
+            "S15",
+            "Trimestral"
+          ],
+          [
+            "Intencion de repetir visita",
+            null,
+            "Estima el potencial de turista recurrente en enero-marzo.",
+            "S15",
+            "Trimestral"
+          ],
+          [
+            "Motivos de eleccion del destino enoturistico",
+            null,
+            "Confirma si el vino es motivacion principal o secundaria del viaje.",
+            "S15",
+            "Semestral"
+          ],
+          [
+            "Destinos alternativos barajados",
+            "Rioja, Ribera del Duero, Jerez vs. otros destinos de sherry (Sanlucar, El Puerto)…",
+            "Situa a Jerez frente a su competencia real.",
+            "S15",
+            "Semestral"
+          ]
+        ]
+      },
+      {
+        "title": "7. REPUTACION DIGITAL DEL DESTINO ENOTURISTICO",
+        "rows": [
+          [
+            "Nº de seguidores / interacciones / menciones en RRSS",
+            null,
+            "Linea base de audiencia digital antes de la campaña.",
+            "S16",
+            "Mensual"
+          ],
+          [
+            "% de comentarios positivos / negativos",
+            null,
+            "Detecta riesgos reputacionales previos (p.ej. quejas de aforo, precio o atencion en bodega).",
+            "S16",
+            "Mensual"
+          ],
+          [
+            "Valoracion media de recursos e instalaciones enoturisticas",
+            null,
+            "Prioriza que bodegas/recursos necesitan mejorar antes de promocionarse mas.",
+            "S16",
+            "Mensual"
+          ],
+          [
+            "Nº de alertas criticas de reputacion",
+            null,
+            "Permite anticipar problemas (masificacion, precio, transporte) antes de escalar la campaña.",
+            "S16",
+            "Continuo"
+          ]
+        ]
+      },
+      {
+        "title": "8. VISION DE LOS RESIDENTES SOBRE EL ENOTURISMO",
+        "rows": [
+          [
+            "Edad y sexo del residente",
+            null,
+            "Caracteriza a quien se le pregunta, para poder segmentar la opinion ciudadana.",
+            "S15",
+            "Anual"
+          ],
+          [
+            "Actitud hacia el enoturismo",
+            null,
+            "Detecta el grado de apoyo social a intensificar la actividad turistica en invierno (incluye posible saturacion en el centro historico).",
+            "S15",
+            "Anual"
+          ],
+          [
+            "Vision sobre los impactos del turismo",
+            "Positivos (empleo, actividad) y negativos (ruido, aforo, precios).",
+            "Anticipa el discurso que debera acompañar a la campaña para mantener la licencia social.",
+            "S15",
+            "Anual"
+          ],
+          [
+            "Aspectos mas y menos valorados por los residentes",
+            null,
+            "Guia decisiones de gestion de aforos, horarios y zonas de las bodegas y recursos de invierno.",
+            "S15",
+            "Anual"
+          ],
+          [
+            "Nivel de satisfaccion de la poblacion con la actividad turistica en general",
+            null,
+            "Termometro social de partida, a repetir tras la campaña (pestaña 4).",
+            "S15",
+            "Anual"
+          ]
+        ]
+      },
+      {
+        "title": "9. COYUNTURA TURISTICA DEL DESTINO",
+        "rows": [
+          [
+            "Nº de llegadas de turistas y excursionistas / pernoctaciones",
+            null,
+            "Contextualiza el peso del enoturismo dentro del turismo total de Jerez.",
+            "INE / Dataestur",
+            "Mensual"
+          ],
+          [
+            "Ocupacion hotelera y extrahotelera por nacionalidad",
+            null,
+            "Contrasta la ocupacion general de la ciudad con la ocupacion especifica de bodegas.",
+            "INE / Dataestur",
+            "Mensual"
+          ],
+          [
+            "Estancia media en alojamientos",
+            null,
+            "Compara con la duracion de estancia del enoturista (bloque 2) para ver si el vino alarga o no la estancia.",
+            "INE / Dataestur",
+            "Mensual"
+          ],
+          [
+            "Gasto medio diario y por partidas del turista internacional",
+            null,
+            "Referencia macro para contrastar el gasto especifico del enoturista.",
+            "INE / Dataestur",
+            "Trimestral"
+          ],
+          [
+            "Indice de precios hoteleros / ADR / RevPAR",
+            null,
+            "Detecta si en enero-marzo el precio hotelero ya incentiva o penaliza la venida (precios muy bajos en temporada baja).",
+            "INE / Dataestur",
+            "Mensual"
+          ]
+        ]
+      },
+      {
+        "title": "10. MEDIOAMBIENTALES",
+        "rows": [
+          [
+            "Consumo energetico asociado a la actividad turistica",
+            null,
+            "Relevante por el gran nº de eventos enologicos en espacios cerrados/climatizados durante el invierno.",
+            "Plataforma Smart City",
+            "Anual"
+          ],
+          [
+            "Uso del agua en turismo",
+            null,
+            "Especialmente sensible en el proceso de elaboracion/limpieza en bodega.",
+            "Plataforma Smart City",
+            "Anual"
+          ],
+          [
+            "Gestion de residuos",
+            null,
+            "Relevante por el volumen de eventos gastronomicos ligados a la campaña de invierno.",
+            "Plataforma Smart City",
+            "Anual"
+          ]
+        ]
+      }
+    ]
+  },
+  "result": {
+    "sheet": "6 CM con datos simulados",
+    "title": "CUADRO DE MANDO DE RESULTADO · ACCION DE ENOTURISMO DE INVIERNO EN JEREZ (fase CHECK: SIN accion vs. CON accion)",
+    "subtitle": "Adaptado de las hojas '3 CHECK - DESTINO' y '3.1 CHECK - BODEGA - CUADRO DE MANDO EMPRESA' del archivo PDCA_PID_varios_ejemplos.xlsx. EJEMPLO RESUELTO: las columnas \"Situacion SIN accion\" y \"Situacion CON accion\" se han rellenado con valores ILUSTRATIVOS -en parte calculados a partir de las respuestas del archivo de simulacion (satisfaccion, NPS, gasto medio, aspectos valorados por residentes) y en parte estimados de forma razonable para los indicadores de reservas, oferta y promocion que no dependen de encuesta-, unicamente para mostrar como se leeria el cuadro de mando una vez ejecutada la accion. Sustituye estos valores por los datos reales de tu destino cuando los tengas.",
+    "blocks": [
+      {
+        "title": "1. DEMANDA Y DESESTACIONALIZACION",
+        "rows": [
+          [
+            "Demanda",
+            "Visitantes enoturisticos en enero-marzo",
+            "850 visitantes (enero-marzo del año anterior, sin accion)",
+            "1.050 visitantes",
+            "+200 visitantes (+23,5%)",
+            "+20%",
+            "SIT / Cuadro de mando",
+            "CUMPLE la meta (+23,5% > +20%). Consolidar la accion el proximo invierno."
+          ],
+          [
+            "Demanda",
+            "Nº de visitantes que ya conocian Jerez y repiten especificamente tras la accion",
+            "12% (frecuencia de visita habitual, pestaña 1)",
+            "17% de los visitantes de la accion",
+            "+5 p.p.",
+            "≥15%",
+            "Encuesta (S15) / Reservas",
+            "CUMPLE la meta. La comunicacion directa a visitantes previos ha funcionado."
+          ],
+          [
+            "Desestacionalizacion",
+            "Peso de enero-marzo sobre el total anual de visitantes enoturisticos",
+            "9% (peso historico de enero-marzo, pestaña 1)",
+            "13%",
+            "+4 p.p.",
+            "+5 p.p.",
+            "Cuadros de mando",
+            "NO llega a la meta (+4 p.p. de +5 p.p.). Cerca del objetivo: revisar si un mes concreto ha funcionado peor."
+          ],
+          [
+            "Desestacionalizacion",
+            "% de visitantes captados especificamente por la accion de invierno",
+            "No aplica (indicador nuevo, no existe sin accion)",
+            "27%",
+            "No aplica diferencia (indicador nuevo)",
+            "≥30%",
+            "Encuesta (S15) / Cuadro de mando",
+            "NO llega a la meta (27% de 30%). Revisar si el mensaje de la accion llega realmente al publico objetivo."
+          ],
+          [
+            "Ocupacion",
+            "Ocupacion de las bodegas y experiencias participantes en enero-marzo",
+            "35% (ocupacion residual sin accion, pestaña 1)",
+            "58%",
+            "+23 p.p.",
+            "≥60%",
+            "Portal profesional / reservas",
+            "NO llega a la meta por poco (58% de 60%). Revisar horarios o precio de las experiencias menos ocupadas."
+          ]
+        ]
+      },
+      {
+        "title": "2. OFERTA Y COOPERACION",
+        "rows": [
+          [
+            "Oferta",
+            "Nº de bodegas y recursos que ofertan experiencias de invierno",
+            "6 bodegas abiertas todo el año (pestaña 1, bloque Oferta)",
+            "14 bodegas y recursos",
+            "+8",
+            "≥12 (incluyendo bodegas pequeñas)",
+            "Portal profesional",
+            "CUMPLE la meta. Bien repartido entre bodegas grandes y pequeñas."
+          ],
+          [
+            "Oferta",
+            "Nº de experiencias especificas creadas para enero-marzo (viñedo en poda, coupage, maridaje de temporada)",
+            "0 (indicador nuevo, no existe sin accion)",
+            "9 experiencias",
+            "+9 (indicador nuevo, valor de partida = 0)",
+            "≥8",
+            "Gestor de contenidos / Portal profesional",
+            "CUMPLE la meta. El taller de coupage y la visita a la poda son las mas reservadas."
+          ],
+          [
+            "Cooperacion",
+            "Empresas con las que se ha colaborado (bodega + restauracion + alojamiento + Real Escuela)",
+            "2 colaboraciones puntuales (habituales sin accion)",
+            "6 colaboraciones cruzadas",
+            "+4",
+            "≥5 colaboraciones cruzadas",
+            "Portal profesional / rutas",
+            "CUMPLE la meta. Ampliar el numero de alojamientos implicados de cara al siguiente ciclo."
+          ],
+          [
+            "Cooperacion",
+            "Nº de rutas o itinerarios que combinan bodega con otro recurso (Real Escuela, flamenco, patrimonio)",
+            "1 itinerario activo antes de la accion (pestaña 1, bloque Interes digital)",
+            "4 itinerarios",
+            "+3",
+            "≥3",
+            "Planificador de rutas (S21)",
+            "CUMPLE la meta. Crear 1-2 itinerarios oficiales mas para el proximo ciclo."
+          ]
+        ]
+      },
+      {
+        "title": "3. PROMOCION Y CANAL DIGITAL",
+        "rows": [
+          [
+            "Promocion",
+            "Visitas mensuales a la seccion/pagina de la accion de invierno",
+            "1.200 visitas/mes (trafico habitual en temporada baja, pestaña 1)",
+            "1.850 visitas/mes",
+            "+650 visitas/mes (+54%)",
+            "+25% vs. objetivo fijado",
+            "Canales digitales (S3 / S4)",
+            "CUMPLE ampliamente la meta. El canal de redes sociales ha sido el que mas trafico ha aportado."
+          ],
+          [
+            "Promocion",
+            "Tasa de conversion (visita a la pagina -> reserva)",
+            "1,8% (tasa de conversion habitual, pestaña 1)",
+            "3,4%",
+            "+1,6 p.p.",
+            "≥3%",
+            "Analitica web (S4)",
+            "CUMPLE la meta. La facilidad de reserva online ha mejorado la conversion."
+          ],
+          [
+            "Promocion",
+            "Nº de menciones e interacciones en RRSS sobre enoturismo de invierno",
+            "180 menciones/mes (volumen habitual, pestaña 1)",
+            "205 menciones/mes",
+            "+14%",
+            "+20% respecto a la linea base",
+            "Reputacion online (S16)",
+            "NO llega a la meta (+14% de +20%). Activar mas prescriptores locales del vino en el siguiente ciclo."
+          ]
+        ]
+      },
+      {
+        "title": "4. IMPACTO ECONOMICO",
+        "rows": [
+          [
+            "Economico",
+            "Ingresos generados por la accion de invierno",
+            "No aplica (indicador nuevo, sin accion no hay ingresos especificos)",
+            "38.500 €",
+            "No aplica diferencia (indicador nuevo)",
+            "40.000 € (objetivo fijado)",
+            "Fuentes propias / bodegas",
+            "CASI cumple el objetivo (96%). Revisar el precio de las experiencias con menos ocupacion antes de decidir sobre precios del siguiente ciclo."
+          ],
+          [
+            "Economico",
+            "Gasto medio por visitante durante el periodo de accion",
+            "28,7 € (gasto medio ponderado, pestaña 1 / encuesta continua)",
+            "33 €",
+            "+4,3 € (+15%)",
+            "≥ gasto medio de la linea base",
+            "Encuesta (S15)",
+            "CUMPLE la meta. El taller de coupage y la cata maridada elevan el gasto medio."
+          ],
+          [
+            "Economico",
+            "Venta complementaria (tienda de vino, restauracion, alojamiento)",
+            "Nivel bajo, sin seguimiento sistematico previo",
+            "+18% de incremento estimado en bodegas participantes",
+            "Seguimiento (sin meta fija el primer año)",
+            "Seguimiento (sin meta fija el primer año)",
+            "Encuesta (S15) / bodegas",
+            "Dato positivo a seguir. Reforzar acuerdos de venta cruzada con restauracion y alojamiento el proximo ciclo."
+          ],
+          [
+            "Economico",
+            "Nº de pernoctaciones adicionales atribuibles a la accion",
+            "1,8 noches de estancia media en enero-marzo sin accion (pestaña 1 / INE-Dataestur)",
+            "2,3 noches de estancia media",
+            "+0,5 noches",
+            "Seguimiento (sin meta fija el primer año)",
+            "INE / Dataestur + Encuesta (S15)",
+            "Dato relevante: argumento clave para ampliar presupuesto el año siguiente."
+          ]
+        ]
+      },
+      {
+        "title": "5. SATISFACCION, REPUTACION Y APRENDIZAJE DEL VISITANTE",
+        "rows": [
+          [
+            "Experiencia cliente",
+            "Satisfaccion global con la experiencia enoturistica",
+            "4,4 / 5 (satisfaccion global, pestaña 1 / encuesta continua)",
+            "4,6 / 5",
+            "+0,2",
+            "≥4,3/5",
+            "Encuesta (S15)",
+            "CUMPLE la meta. Mantener el trato personalizado en grupos reducidos, el aspecto mejor valorado."
+          ],
+          [
+            "Experiencia cliente",
+            "Adecuacion de la experiencia especifica a la temporada de invierno",
+            "No aplica (indicador nuevo, valora una experiencia que solo existe tras la accion)",
+            "3,8 / 5",
+            "No aplica diferencia (indicador nuevo)",
+            "≥4/5",
+            "Encuesta (S15)",
+            "NO llega a la meta (3,8 de 4). Revisar el formato de la visita al viñedo en poda: varios comentarios piden mas apoyo grafico/explicativo del proceso."
+          ],
+          [
+            "Experiencia cliente",
+            "Indice de recomendacion (NPS)",
+            "56 puntos (NPS calculado sobre la encuesta continua, pestaña 1)",
+            "61 puntos",
+            "+5 puntos",
+            "≥ NPS de la linea base",
+            "Encuesta (S15)",
+            "CUMPLE la meta. Argumento solido para escalar la accion el proximo invierno."
+          ],
+          [
+            "Experiencia cliente",
+            "Intencion de repetir en un proximo enero-marzo",
+            "80% Si/Probablemente si (pestaña 1 / encuesta continua)",
+            "83%",
+            "+3 p.p.",
+            "≥50% Si o Quizas",
+            "Encuesta (S15)",
+            "CUMPLE la meta con holgura."
+          ],
+          [
+            "Reputacion",
+            "Valoracion online de las bodegas y recursos participantes",
+            "4,2 / 5 (valoracion habitual, pestaña 1, bloque Reputacion digital)",
+            "4,4 / 5, sin alertas criticas",
+            "+0,2, sin alertas criticas",
+            "≥4,3/5, sin alertas criticas",
+            "Reputacion online (S16)",
+            "CUMPLE la meta. Sin incidencias relevantes durante la accion."
+          ]
+        ]
+      },
+      {
+        "title": "6. VISION DE LOS RESIDENTES (satisfaccion ciudadana)",
+        "rows": [
+          [
+            "Impacto en ciudadania",
+            "Nivel de satisfaccion de la poblacion con la actividad turistica en general",
+            "3,6 / 5 (nivel habitual estimado, pestaña 1, bloque Vision de los residentes)",
+            "75% responde 'Si, claramente' o 'Si, aunque con mejoras' a mantener la accion (encuesta ciudadania)",
+            "Mejora clara respecto al apoyo social habitual",
+            "≥4/5, o mayoria de 'Si, claramente' / 'Si, con mejoras'",
+            "Encuesta (S15)",
+            "CUMPLE la meta (mayoria de respuestas favorables)."
+          ],
+          [
+            "Impacto en ciudadania",
+            "% de residentes que perciben impacto positivo en su negocio o entorno",
+            "No aplica (indicador nuevo, solo puede valorarse una vez ejecutada la accion)",
+            "60% (Muy positivo + Positivo, encuesta ciudadania)",
+            "No aplica diferencia (indicador nuevo)",
+            "≥60%",
+            "Encuesta (S15)",
+            "CUMPLE la meta justo en el limite. Extender los beneficios a mas negocios no turisticos el proximo ciclo."
+          ],
+          [
+            "Impacto en ciudadania",
+            "Nº de menciones a molestias (ruido, aforo, aparcamiento) en la encuesta ciudadana",
+            "Nivel habitual moderado de quejas por actividad turistica (pestaña 1)",
+            "Principal preocupacion: aparcamiento/movilidad (6 de 20 encuestados); masificacion puntual (9 de 20)",
+            "Estable, sin incremento relevante",
+            "Tendencia decreciente o estable",
+            "Encuesta (S15)",
+            "CUMPLE la meta (estable). Reforzar la gestion de aparcamiento en el entorno de bodegas el proximo ciclo."
+          ]
+        ]
+      },
+      {
+        "title": "7. CUMPLIMIENTO DE OBJETIVOS Y APRENDIZAJE (cierre del ciclo, entrada al ACT)",
+        "rows": [
+          [
+            "Resultado",
+            "Cumplimiento del objetivo de visitantes de enero-marzo",
+            "Objetivo: +20% interanual (fijado a partir de la linea base de la pestaña 1)",
+            "+23,5% real",
+            "118% de cumplimiento",
+            "100% del objetivo fijado",
+            "Cuadro de mando",
+            "Objetivo SUPERADO. Base solida para decidir Mantener / Escalar."
+          ],
+          [
+            "Resultado",
+            "Cumplimiento del objetivo economico",
+            "Objetivo: 40.000 € fijado en el plan",
+            "38.500 € reales",
+            "96% de cumplimiento",
+            "100% del objetivo fijado",
+            "Fuentes propias",
+            "CASI cumplido (96%). No preocupante, pero revisar precio u ocupacion de las experiencias mas flojas."
+          ],
+          [
+            "Aprendizaje",
+            "Que funciono mejor (bodega, formato, canal, segmento)",
+            "No aplica (analisis cualitativo, solo disponible tras la accion)",
+            "El taller de coupage y la cata junto al fuego en grupo reducido; el canal de redes sociales; el segmento en pareja y sin niños.",
+            "No aplica diferencia (analisis cualitativo)",
+            "Cualitativo",
+            "Fuentes propias / Encuesta (S15)",
+            "Identificar estos elementos como base para escalar el año siguiente."
+          ],
+          [
+            "Aprendizaje",
+            "Que deberia modificarse de cara al siguiente ciclo de invierno",
+            "No aplica (analisis cualitativo, solo disponible tras la accion)",
+            "Reforzar el apoyo grafico/explicativo en la visita al viñedo en poda; mejorar la señalizacion/movilidad a bodegas alejadas; ampliar la difusion en RRSS.",
+            "No aplica diferencia (analisis cualitativo)",
+            "Cualitativo",
+            "Encuesta (S15) / Reputacion online (S16)",
+            "Genera el listado de mejoras para la siguiente edicion."
+          ],
+          [
+            "Decision (ACT)",
+            "Decision para el proximo ciclo de la accion de enoturismo de invierno",
+            "-",
+            "MANTENER Y MEJORAR: los resultados de demanda, satisfaccion y reputacion superan la meta; el resultado economico y el de promocion en RRSS quedan cerca pero no llegan, y se abordan con mejoras concretas.",
+            "-",
+            "-",
+            "Cuadro de mando (sintesis del ciclo)",
+            "Cierra el ciclo PDCA y abre el siguiente PLAN del año proximo."
+          ],
+          [
+            null,
+            null,
+            "Valor en el CM",
+            "Cálculo real hecho sobre la simulación ENCUESTAS",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "Satisfacción global 4,4/5",
+            "Media de la columna Q18 de las 25 respuestas de \"Sim. Diagnóstico Turista\"",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "NPS 56 puntos",
+            "% promotores (9-10) − % detractores (0-6) sobre las 25 respuestas de Q22",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "Gasto medio 28,7 €",
+            "Media ponderada de la distribución real de respuestas de Q13",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "% residentes con impacto positivo = 60%",
+            "Conteo real de \"Muy positivo\"+\"Positivo\" en Q7 de las 20 respuestas de \"Sim. Satisfacción Ciudadanía\"",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "75% apoyo a mantener la iniciativa",
+            "Conteo real de Q13 en esa misma hoja",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "FICTICIO",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "Visitantes en enero-marzo (850 → 1.050)",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "Ocupación de bodegas (35% → 58%)",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "Ingresos generados (38.500 €)",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "Nº de bodegas/experiencias/colaboraciones",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "Tráfico web y menciones en RRSS",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      }
+    ]
+  }
+};
+
+</script>
+    <script>
+window.S15_RESULTS = {
+  "diagnostic": {
+    "sample_size": 25,
+    "avg_satisfaction": 4.4,
+    "nps": 56,
+    "repeat_intent_pct": 80.0,
+    "avg_spend": 28.8,
+    "top_procedencia": [
+      [
+        "España - otra CCAA",
+        5
+      ],
+      [
+        "España - Andalucia",
+        4
+      ],
+      [
+        "Reino Unido",
+        4
+      ],
+      [
+        "España - Cataluña",
+        3
+      ],
+      [
+        "España - Madrid",
+        3
+      ]
+    ],
+    "top_edad": [
+      [
+        "35-44",
+        7
+      ],
+      [
+        "45-54",
+        6
+      ],
+      [
+        "25-34",
+        6
+      ],
+      [
+        "55-64",
+        3
+      ],
+      [
+        "65 o mas",
+        2
+      ]
+    ],
+    "top_transport": [
+      [
+        "Coche propio o alquilado",
+        12
+      ],
+      [
+        "A pie desde el centro",
+        7
+      ],
+      [
+        "Autobus turistico",
+        4
+      ],
+      [
+        "Taxi o VTC",
+        1
+      ],
+      [
+        "Transporte publico regular",
+        1
+      ]
+    ],
+    "top_reason": [
+      [
+        "El vino y las bodegas",
+        9
+      ],
+      [
+        "El clima suave de invierno",
+        5
+      ],
+      [
+        "La gastronomia",
+        4
+      ],
+      [
+        "El Alcazar, la Catedral o el patrimonio",
+        3
+      ],
+      [
+        "La Real Escuela del Arte Ecuestre",
+        2
+      ]
+    ],
+    "top_alt": [
+      [
+        "Rioja",
+        6
+      ],
+      [
+        "Ninguno, Jerez era mi unica opcion",
+        5
+      ],
+      [
+        "Ribera del Duero",
+        5
+      ],
+      [
+        "Otro destino de vino en España",
+        5
+      ],
+      [
+        "Otro destino de vino fuera de España",
+        3
+      ]
+    ],
+    "top_interest_items": [
+      [
+        "El precio de la visita en relacion a la calidad",
+        6
+      ],
+      [
+        "La experiencia autentica en bodegas centenarias",
+        4
+      ],
+      [
+        "El ambiente y la arquitectura de las bodegas",
+        4
+      ],
+      [
+        "Aprender sobre el proceso de crianza en soleras",
+        3
+      ],
+      [
+        "La tranquilidad y el trato personalizado en grupos pequeños",
+        2
+      ],
+      [
+        "El patrimonio historico del centro de Jerez",
+        2
+      ],
+      [
+        "El trato cercano del personal de bodega",
+        2
+      ],
+      [
+        "El espectaculo ecuestre",
+        2
+      ]
+    ]
+  },
+  "city": {
+    "sample_size": 20,
+    "positive_impact_pct": 60.0,
+    "support_pct": 75.0,
+    "top_zones": [
+      [
+        "Entorno de bodegas",
+        6
+      ],
+      [
+        "Centro historico",
+        6
+      ],
+      [
+        "Barrio de Santiago",
+        5
+      ],
+      [
+        "Otras zonas del municipio",
+        3
+      ]
+    ],
+    "top_concerns": [
+      [
+        "Masificacion en fechas concretas (Navidad, vendimia, Feria)",
+        9
+      ],
+      [
+        "Dificultad de aparcamiento o movilidad",
+        6
+      ],
+      [
+        "Perdida de autenticidad del casco historico",
+        4
+      ],
+      [
+        "Ruido y aforo en el barrio",
+        3
+      ],
+      [
+        "Subida de precios de alojamiento",
+        3
+      ],
+      [
+        "Ninguno en particular",
+        3
+      ]
+    ],
+    "top_valued": [
+      [
+        "Pone en valor el trabajo del viñedo y la bodega",
+        11
+      ],
+      [
+        "Da a conocer el patrimonio y la cultura de Jerez",
+        8
+      ],
+      [
+        "Genera empleo y actividad economica",
+        7
+      ],
+      [
+        "Dinamiza el centro historico",
+        6
+      ]
+    ]
+  }
+};
+
+    </script>
+    <script src="./datos/s15_citizen_profile.js"></script>
+    <script src="./datos/s15_satisfaction_profile.js"></script>
+    <script src="./datos/sim_diagnostico_turista.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
