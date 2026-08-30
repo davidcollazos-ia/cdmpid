@@ -194,117 +194,13 @@ function renderMapCard(title, note) {
 }
 
 function renderGuideSection() {
-  const sections = [
-    {
-      section: "1. Diagnóstico",
-      tabs: [
-        {
-          tab: "1. Oferta enoturística",
-          indicators: [
-            ["Nº de bodegas abiertas al enoturismo", "S2", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Bloque 1", "Simulado"],
-            ["Nº de bodegas que abren en enero-marzo", "S2", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Bloque 1", "Simulado"],
-            ["Nº de museos y centros de interpretacion", "S2", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Bloque 1", "Simulado"],
-          ],
-        },
-        {
-          tab: "2. Perfil del enoturista",
-          indicators: [
-            ["Procedencia", "S7 / S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q1 Procedencia", "Real"],
-            ["Edad del visitante", "S7 / S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q2 Edad", "Real"],
-            ["Sexo del visitante", "S7 / S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q3 Sexo", "Real"],
-            ["Nivel socioeconómico", "S15", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Relación con el vino", "S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q5 Relacion con el vino", "Real"],
-            ["Composición de la unidad de viaje", "S7 / S8 / S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q6 Compañia de viaje", "Real"],
-            ["Idiomas utilizados en consultas", "S3", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q15 Medios de inspiracion", "Real/derivado"],
-            ["Duración de la estancia", "S7 / S8 / S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q7 Noches en Jerez", "Real"],
-            ["Fidelidad turística", "S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q8 Frecuencia de visita", "Real"],
-          ],
-        },
-        {
-          tab: "3. Interés digital por el enoturismo",
-          indicators: [
-            ["Recursos consultados", "S3 / S4 / S8", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Tendencias de consulta", "S8", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Medios de inspiración-preparación del viaje", "S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q15 Medios de inspiracion", "Real"],
-            ["Itinerarios creados", "S21", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-          ],
-        },
-        {
-          tab: "4. Promoción y marketing",
-          indicators: [
-            ["Visitas a campañas", "S4", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Conversión visita -> reserva", "S4", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Origen del tráfico", "S3 / S4", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-          ],
-        },
-        {
-          tab: "5. Comportamiento del enoturista",
-          indicators: [
-            ["Recursos visitados", "S7", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "S7", "Real"],
-            ["Eventos visitados", "S7", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Actividades realizadas", "S15", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "top_interest_items", "Real"],
-            ["Medio de transporte", "S15", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "transport", "Real"],
-            ["Tipo de alojamiento", "S15", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Oferta gastronómica", "S15", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Gasto medio e impacto", "S15", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "avg_spend", "Real"],
-            ["Gasto por partidas", "S15", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Impuestos generados", "-", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-          ],
-        },
-        {
-          tab: "6. Satisfacción del enoturista",
-          indicators: [
-            ["Satisfacción global", "S15 / S16", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "avg_satisfaction", "Real"],
-            ["Satisfacción por aspectos", "S15 / S16", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "aspects", "Real"],
-            ["Aspectos mejor / a mejorar", "S15 / S16", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "top_positive / top_improve", "Real"],
-            ["NPS", "S15", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "nps_avg", "Real"],
-            ["Intención de repetir", "S15", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "repeat_pct", "Real"],
-            ["Motivos de elección", "S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q16 Motivo principal de la visita", "Real"],
-            ["Destinos alternativos", "S15", "sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Q17 Destino alternativo", "Real"],
-          ],
-        },
-        {
-          tab: "7. Reputación",
-          indicators: [
-            ["Reseñas y valoración", "S8", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Sentimiento digital", "S3 / S4 / S8", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Reputación social", "S15", "s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "top_positive / top_improve", "Real/derivado"],
-          ],
-        },
-        {
-          tab: "8. Residentes",
-          indicators: [
-            ["Edad y sexo del residente", "S15", "s15_citizen_profile.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Satisfaccion Ciudadania", "age / gender", "Real"],
-            ["Actitud hacia el enoturismo", "S15", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Visión sobre los impactos", "S15", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Aspectos más y menos valorados", "S15", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Satisfacción general", "S15", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-          ],
-        },
-        {
-          tab: "9. Coyuntura",
-          indicators: [
-            ["Estancia media", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "estancia media", "Real"],
-            ["Ocupación hotelera", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "ocupación hotelera", "Real"],
-            ["ADR hotelero", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "ADR", "Real"],
-            ["RevPAR", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "RevPAR", "Real"],
-            ["Peso mercado", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "peso mercado", "Real"],
-            ["Gasto medio diario persona", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "gasto medio diario persona", "Real"],
-            ["Plazas hoteleras", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "plazas hoteleras", "Real"],
-            ["Establecimientos abiertos", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "establecimientos abiertos", "Real"],
-            ["Pasajeros aéreos", "DatosCdM", "caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "pasajeros aéreos", "Real"],
-          ],
-        },
-        {
-          tab: "10. Medioambiente",
-          indicators: [
-            ["Indicadores ambientales", "Pendiente", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Comparativas verdes", "Pendiente", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-            ["Referencia sostenible", "Pendiente", "app.js", "N/D", "Maqueta", "Sin campo", "Simulado"],
-          ],
-        },
-      ],
-    },
+  const guideRows = [
+    ["sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Pestaña 2 Perfil", "Real", "Base para procedencia, edad, sexo, viaje, gasto e inspiración"],
+    ["s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "Pestañas 5 y 6", "Real", "Resume comportamiento, satisfacción y reputación"],
+    ["s15_citizen_profile.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Satisfaccion Ciudadania", "Pestaña 8 Residentes", "Real", "Zonas, género y edad de la ciudadanía"],
+    ["caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "Pestaña 9 Coyuntura", "Real", "Estancia media, ocupación, ADR, RevPAR y otros datos de contexto"],
+    ["window.DASHBOARD_DATA", "index.html", "Bloques del diagnóstico y resultado", "Pestañas 1 y 4", "Mixto", "Estructura y parte de la maqueta visual"],
+    ["Tarjetas manuales", "app.js", "Bloques visuales de diseño", "Pestañas 3, 5, 6 y 10", "Simulado", "Se irán sustituyendo por dato real cuando exista fuente"],
   ];
   const guideLabels = [
     ["Fuentes reales", "4", "Excel convertidos a JS"],
@@ -335,36 +231,32 @@ function renderGuideSection() {
       <div class="panel guide-table-panel">
         <div class="block-head">
           <div>
-            <h3>Inventario jerárquico</h3>
-            <p>Sección > pestaña > indicador, con trazabilidad técnica completa</p>
+            <h3>Inventario de fuentes</h3>
+            <p>Guía viva para seguir conectando datos y reducir la simulación</p>
           </div>
         </div>
         <div class="guide-table-wrap">
           <table class="guide-table">
             <thead>
               <tr>
-                <th>Sección</th>
-                <th>Pestaña</th>
-                <th>Indicador</th>
-                <th>Fuente</th>
+                <th>Archivo / origen</th>
                 <th>Excel</th>
-                <th>Hoja</th>
-                <th>Campo usado</th>
+                <th>Hoja / dataset</th>
+                <th>Pestaña</th>
                 <th>Estado</th>
+                <th>Uso actual</th>
               </tr>
             </thead>
             <tbody>
-              ${sections.map((section) => section.tabs.map((tab) => tab.indicators.map((indicator, idx) => `
+              ${guideRows.map((row) => `
                 <tr>
-                  ${idx === 0 ? `<td rowspan="${tab.indicators.length}"><strong>${section.section}</strong></td>` : ""}
-                  ${idx === 0 ? `<td rowspan="${tab.indicators.length}"><strong>${tab.tab}</strong></td>` : ""}
-                  <td>${indicator[0]}</td>
-                  <td>${indicator[1]}</td>
-                  <td>${indicator[2]}</td>
-                  <td>${indicator[3]}</td>
-                  <td>${indicator[4]}</td>
-                  <td><span class="guide-pill guide-pill--${normalize(indicator[6])}">${indicator[6]}</span></td>
-                </tr>`).join("")).join("")}
+                  <td><strong>${row[0]}</strong></td>
+                  <td>${row[1]}</td>
+                  <td>${row[2]}</td>
+                  <td>${row[3]}</td>
+                  <td><span class="guide-pill guide-pill--${normalize(row[4])}">${row[4]}</span></td>
+                  <td>${row[5]}</td>
+                </tr>`).join("")}
             </tbody>
           </table>
         </div>
