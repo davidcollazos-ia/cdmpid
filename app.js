@@ -12,16 +12,6 @@ const state = {
     sortKey: "periodo",
     sortDir: "desc",
   },
-  guide: {
-    section: "all",
-    type: "all",
-    pestaña: "all",
-    indicador: "",
-    fuente: "",
-    excel: "",
-    hoja: "",
-    campo: "",
-  },
 };
 
 const palette = ["#ff246d", "#7432c4", "#23845a", "#ff7a18", "#3066fe", "#14b8a6"];
@@ -78,27 +68,6 @@ function sourceList(blocks) {
 }
 
 function summaryCards(view) {
-  if (view === "guide") {
-    const cards = [
-      ["Fuentes reales", "4", "Excel convertidos a JS"],
-      ["Vistas conectadas", "6", "Ya leen datos o agregados reales"],
-      ["Bloques simulados", "Parcial", "Todavía quedan maquetas"],
-      ["Estado", "Vivo", "La guía se actualizará con cada avance"],
-    ];
-    return cards
-      .map(
-        ([label, value, note], i) => `
-          <article class="kpi">
-            <div class="kpi-icon ${i % 2 === 0 ? "pink" : "purple"}">${i + 1}</div>
-            <div>
-              <h3>${label}</h3>
-              <div class="kpi-value">${value}</div>
-              <small>${note}</small>
-            </div>
-          </article>`
-      )
-      .join("");
-  }
   if (view === "s15") {
     const d = window.S15_RESULTS?.diagnostic;
     const c = window.S15_RESULTS?.city;
@@ -201,187 +170,6 @@ function renderMapCard(title, note) {
       <div class="leaflet-map" data-map="jerez-map"></div>
       <p class="map-note">${note}</p>
     </div>`;
-}
-
-function guideTraceForDiagnostic(row, blockTitle) {
-  const label = clean(row[0]);
-  const source = clean(row[3] || "");
-  const sourceMap = [
-    { test: /simulacion|maqueta|bloque/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
-    { test: /^S2$/i, excel: "Ciclo_PDCA_PID_Enoturismo_Invierno_Jerez_Diag y Encuestas.xlsx", sheet: "CM Diagnostico Destino", field: label, kind: "Real" },
-    { test: /^S15$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: label, kind: "Real" },
-    { test: /^S15\s*\/\s*S16$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: label, kind: "Real" },
-    { test: /^S7\s*\/\s*S8\s*\/\s*S15$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: label, kind: "Real/derivado" },
-    { test: /^S7\s*\/\s*S15$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: label, kind: "Real/derivado" },
-    { test: /^S7$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Resultados S15 agregados", field: label, kind: "Real" },
-    { test: /^S3\s*\/\s*S4\s*\/\s*S8$/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
-    { test: /^S3\s*\/\s*S4$/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
-    { test: /^S3$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: "Q15 Medios de inspiracion", kind: "Real" },
-    { test: /^S21$/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
-    { test: /^DatosCdM$/i, excel: "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", sheet: "DatosCdM", field: label, kind: "Real" },
-    { test: /^-\s*$/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
-    { test: /app\.js/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
-    { test: /window\.DASHBOARD_DATA/i, excel: "index.html", sheet: "window.DASHBOARD_DATA", field: label, kind: "Mixto" },
-    { test: /.*/, excel: source || "N/D", sheet: "Pendiente", field: label, kind: source ? "Mixto" : "Simulado" },
-  ];
-  const match = sourceMap.find((item) => item.test.test(source)) || sourceMap[sourceMap.length - 1];
-  return {
-    indicador: label,
-    fuente: source || "N/D",
-    excel: match.excel,
-    hoja: match.sheet,
-    campo: match.field,
-    tipo: match.kind,
-    bloque: blockTitle,
-  };
-}
-
-function buildGuideDiagnosticRows() {
-  const diagnosticBlocks = state.data?.diagnostic?.blocks || [];
-  return diagnosticBlocks.flatMap((block, idx) =>
-    block.rows
-      .filter((row) => clean(row[0]) && !/^Bloque/.test(clean(row[0])))
-      .map((row) => {
-        const trace = guideTraceForDiagnostic(row, block.title);
-        return {
-          section: "Diagnóstico",
-          tabIndex: idx + 1,
-          tab: block.title,
-          ...trace,
-        };
-      })
-  );
-}
-
-function renderGuideSection() {
-  const guideRows = buildGuideDiagnosticRows();
-  const filteredRows = guideRows.filter((row) => {
-    if (state.guide.section !== "all" && normalize(row.section) !== state.guide.section) return false;
-    if (state.guide.type !== "all" && normalize(row.tipo) !== state.guide.type) return false;
-    if (state.guide.pestaña !== "all" && !normalize(`${row.tabIndex}. ${row.tab}`).includes(normalize(state.guide.pestaña))) return false;
-    if (state.guide.indicador && !normalize(row.indicador).includes(normalize(state.guide.indicador))) return false;
-    if (state.guide.fuente && !normalize(row.fuente).includes(normalize(state.guide.fuente))) return false;
-    if (state.guide.excel && !normalize(row.excel).includes(normalize(state.guide.excel))) return false;
-    if (state.guide.hoja && !normalize(row.hoja).includes(normalize(state.guide.hoja))) return false;
-    if (state.guide.campo && !normalize(row.campo).includes(normalize(state.guide.campo))) return false;
-    return true;
-  });
-  const guideLabels = [
-    ["Diagnóstico", "10", "Bloques temáticos"],
-    ["Tarjetas", String(guideRows.length), "Indicadores y bloques"],
-    ["Excel reales", String(guideRows.filter((row) => row.tipo.toLowerCase().includes("real")).length), "Conectadas"],
-    ["Simulados", String(guideRows.filter((row) => row.tipo.toLowerCase().includes("simulado")).length), "Pendientes"],
-  ];
-  return `
-    <section class="panel guide-panel">
-      <div class="topic-heading">
-        <div>
-          <small>INFORME DE TRABAJO</small>
-          <h2>Diagnóstico: trazabilidad de 10 bloques</h2>
-          <p>Menú lateral para revisar cada bloque y, dentro, cada tarjeta con su fuente real o simulada y su trazabilidad técnica</p>
-        </div>
-      </div>
-      <div class="kpis guide-kpis">
-        ${guideLabels.map((card, idx) => `
-          <article class="kpi guide-kpi">
-            <div class="kpi-icon ${idx % 2 === 0 ? "pink" : "purple"}">${idx + 1}</div>
-            <div>
-              <h3>${card[0]}</h3>
-              <div class="kpi-value">${card[1]}</div>
-              <small>${card[2]}</small>
-            </div>
-          </article>`).join("")}
-      </div>
-      <div class="guide-layout">
-        <aside class="guide-sidebar">
-          <button class="active" type="button"><span>1</span><div><b>Diagnóstico</b><small>10 pestañas</small></div></button>
-          <button type="button" disabled><span>2</span><div><b>Resultado</b><small>Pendiente</small></div></button>
-          <button type="button" disabled><span>3</span><div><b>Encuestas</b><small>Pendiente</small></div></button>
-          <button type="button" disabled><span>4</span><div><b>Coyuntura / resto</b><small>Pendiente</small></div></button>
-        </aside>
-        <div class="guide-content">
-          <div class="guide-filters panel">
-            <div class="guide-filter">
-              <label>Sección</label>
-              <select data-guide-filter="section">
-                <option value="all" ${state.guide.section === "all" ? "selected" : ""}>Todas</option>
-                <option value="diagnóstico" ${state.guide.section === "diagnóstico" ? "selected" : ""}>Diagnóstico</option>
-              </select>
-            </div>
-            <div class="guide-filter">
-              <label>Pestaña</label>
-              <select data-guide-filter="pestaña">
-                <option value="all" ${state.guide.pestaña === "all" ? "selected" : ""}>Todas</option>
-                ${guideRows.map((row) => row.tabIndex).filter((v, i, a) => a.indexOf(v) === i).map((idx) => `<option value="${idx}" ${state.guide.pestaña === String(idx) ? "selected" : ""}>${idx}. ${clean(diagnosticBlocks[idx - 1]?.title || "")}</option>`).join("")}
-              </select>
-            </div>
-            <div class="guide-filter">
-              <label>Tipo</label>
-              <select data-guide-filter="type">
-                <option value="all" ${state.guide.type === "all" ? "selected" : ""}>Todos</option>
-                <option value="real" ${state.guide.type === "real" ? "selected" : ""}>Real</option>
-                <option value="simulado" ${state.guide.type === "simulado" ? "selected" : ""}>Simulado</option>
-                <option value="real/derivado" ${state.guide.type === "real/derivado" ? "selected" : ""}>Real / derivado</option>
-                <option value="mixto" ${state.guide.type === "mixto" ? "selected" : ""}>Mixto</option>
-              </select>
-            </div>
-            <div class="guide-filter">
-              <label>Indicador</label>
-              <input data-guide-filter="indicador" value="${state.guide.indicador}" placeholder="Buscar indicador" />
-            </div>
-            <div class="guide-filter">
-              <label>Fuente</label>
-              <input data-guide-filter="fuente" value="${state.guide.fuente}" placeholder="S15 / S2 / DatosCdM" />
-            </div>
-            <div class="guide-filter">
-              <label>Excel</label>
-              <input data-guide-filter="excel" value="${state.guide.excel}" placeholder="Nombre del Excel" />
-            </div>
-            <div class="guide-filter">
-              <label>Hoja</label>
-              <input data-guide-filter="hoja" value="${state.guide.hoja}" placeholder="Nombre de hoja" />
-            </div>
-            <div class="guide-filter">
-              <label>Campo usado</label>
-              <input data-guide-filter="campo" value="${state.guide.campo}" placeholder="Q1, ADR, etc." />
-            </div>
-            <div class="guide-filter guide-filter--meta">
-              <label>Filtrados</label>
-              <strong>${filteredRows.length}</strong>
-            </div>
-          </div>
-          <div class="guide-table-wrap">
-            <table class="guide-table guide-table--report">
-              <thead>
-                <tr>
-                  <th>Sección</th>
-                  <th>Pestaña</th>
-                  <th>Indicador</th>
-                  <th>Tipo</th>
-                  <th>Fuente</th>
-                  <th>Excel</th>
-                  <th>Hoja</th>
-                  <th>Campo usado</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filteredRows.map((row) => `
-                  <tr>
-                    <td>${row.section}</td>
-                    <td>${row.tabIndex}. ${clean(row.tab.replace(/^\d+\.\s*/, ""))}</td>
-                    <td><strong>${row.indicador}</strong></td>
-                    <td><span class="guide-pill guide-pill--${normalize(row.tipo)}">${row.tipo}</span></td>
-                    <td>${row.fuente}</td>
-                    <td>${row.excel}</td>
-                    <td>${row.hoja}</td>
-                    <td>${row.campo}</td>
-                  </tr>`).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>`;
 }
 
 function renderResourceMap(block) {
@@ -1712,16 +1500,7 @@ function chunkBlocks(blocks, sizes) {
 }
 
 function render() {
-  if (state.view === "guide") {
-    el("summary-kpis").innerHTML = summaryCards("guide");
-    el("blocks").innerHTML = renderGuideSection();
-    el("s15-section").innerHTML = "";
-    el("subtitle").textContent = "Jerez de la Frontera · Informe vivo de trabajo";
-    el("section-kicker").textContent = "INFORME";
-    el("section-title").textContent = "Inventario de datos";
-    el("section-desc").textContent = "Fuentes reales, mixtas y simuladas";
-    el("sheet-note").textContent = "Este informe se actualizará según vayamos incorporando más datos desde Excel u otras fuentes.";
-  } else if (state.view === "s15") {
+  if (state.view === "s15") {
     el("summary-kpis").innerHTML = summaryCards("s15");
     el("blocks").innerHTML = "";
     el("s15-section").innerHTML = renderS15Section();
@@ -1805,11 +1584,6 @@ function render() {
       const sortKey = event.target.closest("[data-coyuntura-sort-key]");
       if (sortKey && blocksEl.contains(sortKey)) {
         state.coyuntura.sortKey = sortKey.value;
-        render();
-      }
-      const guideFilter = event.target.closest("[data-guide-filter]");
-      if (guideFilter && blocksEl.contains(guideFilter)) {
-        state.guide[guideFilter.dataset.guideFilter] = guideFilter.value;
         render();
       }
     });
