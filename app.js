@@ -1115,7 +1115,7 @@ function renderDiagnosticResidentsCards() {
           </div>
           <div class="diag-profile-card__foot"><span>S15</span><small>Anual</small></div>
         </article>
-        <article class="diag-profile-card diag-digital-card diag-residents-map-card">
+        <article class="diag-profile-card diag-digital-card diag-residents-map-card diag-residents-map-card--hidden">
           <div class="diag-profile-card__head"><div class="diag-profile-card__badge">6</div><div class="diag-profile-card__titles"><h3>Mapa de residencia</h3><p>Zona donde vive o trabaja cada encuestado</p></div></div>
           <div class="map-wrap">
             <div class="resident-map-frame">
