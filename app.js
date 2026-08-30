@@ -193,28 +193,58 @@ function renderMapCard(title, note) {
     </div>`;
 }
 
-function renderGuideSection() {
-  const guideRows = [
-    ["sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Pestaña 2 Perfil", "Real", "Base para procedencia, edad, sexo, viaje, gasto e inspiración"],
-    ["s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "Pestañas 5 y 6", "Real", "Resume comportamiento, satisfacción y reputación"],
-    ["s15_citizen_profile.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Satisfaccion Ciudadania", "Pestaña 8 Residentes", "Real", "Zonas, género y edad de la ciudadanía"],
-    ["caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "Pestaña 9 Coyuntura", "Real", "Estancia media, ocupación, ADR, RevPAR y otros datos de contexto"],
-    ["window.DASHBOARD_DATA", "index.html", "Bloques del diagnóstico y resultado", "Pestañas 1 y 4", "Mixto", "Estructura y parte de la maqueta visual"],
-    ["Tarjetas manuales", "app.js", "Bloques visuales de diseño", "Pestañas 3, 5, 6 y 10", "Simulado", "Se irán sustituyendo por dato real cuando exista fuente"],
+function guideTraceForDiagnostic(row, blockTitle) {
+  const label = clean(row[0]);
+  const source = clean(row[3] || "");
+  const sourceMap = [
+    { test: /simulacion|maqueta|bloque/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
+    { test: /^S2$/i, excel: "Ciclo_PDCA_PID_Enoturismo_Invierno_Jerez_Diag y Encuestas.xlsx", sheet: "CM Diagnostico Destino", field: label, kind: "Real" },
+    { test: /^S15$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: label, kind: "Real" },
+    { test: /^S15\s*\/\s*S16$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: label, kind: "Real" },
+    { test: /^S7\s*\/\s*S8\s*\/\s*S15$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: label, kind: "Real/derivado" },
+    { test: /^S7\s*\/\s*S15$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: label, kind: "Real/derivado" },
+    { test: /^S7$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Resultados S15 agregados", field: label, kind: "Real" },
+    { test: /^S3\s*\/\s*S4\s*\/\s*S8$/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
+    { test: /^S3\s*\/\s*S4$/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
+    { test: /^S3$/i, excel: "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", sheet: "Sim. Diagnostico Turista", field: "Q15 Medios de inspiracion", kind: "Real" },
+    { test: /^S21$/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
+    { test: /^DatosCdM$/i, excel: "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", sheet: "DatosCdM", field: label, kind: "Real" },
+    { test: /^-\s*$/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
+    { test: /app\.js/i, excel: "N/D", sheet: "N/D", field: "Sin campo", kind: "Simulado" },
+    { test: /window\.DASHBOARD_DATA/i, excel: "index.html", sheet: "window.DASHBOARD_DATA", field: label, kind: "Mixto" },
+    { test: /.*/, excel: source || "N/D", sheet: "Pendiente", field: label, kind: source ? "Mixto" : "Simulado" },
   ];
+  const match = sourceMap.find((item) => item.test.test(source)) || sourceMap[sourceMap.length - 1];
+  return {
+    indicador: label,
+    fuente: source || "N/D",
+    excel: match.excel,
+    hoja: match.sheet,
+    campo: match.field,
+    tipo: match.kind,
+    bloque: blockTitle,
+  };
+}
+
+function renderGuideSection() {
+  const diagnosticBlocks = state.data?.diagnostic?.blocks || [];
+  const guideCards = diagnosticBlocks.map((block, idx) => {
+    const cards = block.rows.filter((row) => clean(row[0]) && !/^Bloque/.test(clean(row[0]))).map((row) => guideTraceForDiagnostic(row, block.title));
+    return { title: block.title, cards, total: cards.length, idx: idx + 1 };
+  });
   const guideLabels = [
-    ["Diagnóstico", "1-10", "Bloques base del cuadro de mando"],
-    ["Resultado", "1-10", "Bloques con datos simulados"],
-    ["Encuestas", "S15", "Perfil, comportamiento y satisfacción"],
-    ["Coyuntura / resto", "9-10", "Coyuntura, residentes y medioambiente"],
+    ["Diagnóstico", "10", "Bloques temáticos"],
+    ["Tarjetas", String(guideCards.reduce((sum, block) => sum + block.total, 0)), "Indicadores y bloques"],
+    ["Excel reales", "3", "Fuentes ya conectadas"],
+    ["Simulados", "Resto", "Pendientes por reemplazar"],
   ];
   return `
     <section class="panel guide-panel">
       <div class="topic-heading">
         <div>
           <small>INFORME DE TRABAJO</small>
-          <h2>Inventario vivo de datos, fuentes y simulaciones</h2>
-          <p>El informe ya no se centra solo en diagnóstico: separa diagnóstico, resultado, encuestas y el resto de secciones para ver qué está conectado y qué sigue simulado</p>
+          <h2>Diagnóstico: trazabilidad de 10 bloques</h2>
+          <p>Menú lateral para revisar cada bloque y, dentro, cada tarjeta con su fuente real o simulada y su trazabilidad técnica</p>
         </div>
       </div>
       <div class="kpis guide-kpis">
@@ -228,57 +258,51 @@ function renderGuideSection() {
             </div>
           </article>`).join("")}
       </div>
-      <div class="panel guide-table-panel">
-        <div class="block-head">
-          <div>
-            <h3>Inventario de fuentes</h3>
-            <p>Informe vivo para seguir conectando datos y reducir la simulación</p>
+      <div class="guide-layout">
+        <aside class="guide-sidebar">
+          <button class="active" type="button"><span>1</span><div><b>Diagnóstico</b><small>10 pestañas</small></div></button>
+          <button type="button" disabled><span>2</span><div><b>Resultado</b><small>Pendiente</small></div></button>
+          <button type="button" disabled><span>3</span><div><b>Encuestas</b><small>Pendiente</small></div></button>
+          <button type="button" disabled><span>4</span><div><b>Coyuntura / resto</b><small>Pendiente</small></div></button>
+        </aside>
+        <div class="guide-content">
+          <div class="guide-notes guide-notes--compact">
+            <article class="guide-note">
+              <h4>Diagnóstico</h4>
+              <p>Los 10 bloques se muestran como bloques independientes para revisar la trazabilidad tarjeta por tarjeta.</p>
+            </article>
+            <article class="guide-note">
+              <h4>Lectura</h4>
+              <p>Si la tarjeta usa Excel, verás el archivo, la hoja y el campo; si no existe aún fuente real, se marcará como simulada.</p>
+            </article>
           </div>
-        </div>
-        <div class="guide-notes guide-notes--compact">
-          <article class="guide-note">
-            <h4>Diagnóstico</h4>
-            <p>Incluye los bloques 1 a 10 de la hoja de partida. Aquí hay mezcla de datos reales y simulados, con más peso en el bloque 2, 3, 5, 6, 8, 9 y 10 según la fuente.</p>
-          </article>
-          <article class="guide-note">
-            <h4>Resultado, encuestas y resto</h4>
-            <p>Resultado conserva la misma estructura visual con simulación; encuestas S15 alimentan perfil, comportamiento y satisfacción; coyuntura y residentes salen de sus hojas específicas.</p>
-          </article>
-        </div>
-        <div class="guide-table-wrap">
-          <table class="guide-table">
-            <thead>
-              <tr>
-                <th>Archivo / origen</th>
-                <th>Excel</th>
-                <th>Hoja / dataset</th>
-                <th>Pestaña</th>
-                <th>Estado</th>
-                <th>Uso actual</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${guideRows.map((row) => `
-                <tr>
-                  <td><strong>${row[0]}</strong></td>
-                  <td>${row[1]}</td>
-                  <td>${row[2]}</td>
-                  <td>${row[3]}</td>
-                  <td><span class="guide-pill guide-pill--${normalize(row[4])}">${row[4]}</span></td>
-                  <td>${row[5]}</td>
-                </tr>`).join("")}
-            </tbody>
-          </table>
-        </div>
-        <div class="guide-notes">
-          <article class="guide-note">
-            <h4>Lectura rápida</h4>
-            <p>Lo ya conectado es reutilizable y estable. Lo simulado se mantiene para diseño visual, pero esta pestaña dirá qué sustituir primero.</p>
-          </article>
-          <article class="guide-note">
-            <h4>Próximo foco</h4>
-            <p>Ir completando cada bloque con su fuente real y mantener aquí el estado de avance como hoja de ruta del proyecto.</p>
-          </article>
+          <div class="guide-blocks">
+            ${guideCards.map((block) => `
+              <article class="guide-block">
+                <div class="guide-block__head">
+                  <div>
+                    <h3>${block.idx}. ${block.title.replace(/^\d+\.\s*/, "")}</h3>
+                    <p>${block.total} tarjetas / indicadores</p>
+                  </div>
+                  <span>${block.total}</span>
+                </div>
+                <div class="guide-cards">
+                  ${block.cards.map((card) => `
+                    <div class="guide-card">
+                      <div class="guide-card__head">
+                        <b>${card.indicador}</b>
+                        <span class="guide-pill guide-pill--${normalize(card.tipo)}">${card.tipo}</span>
+                      </div>
+                      <div class="guide-card__grid">
+                        <div><small>Fuente</small><strong>${card.fuente}</strong></div>
+                        <div><small>Excel</small><strong>${card.excel}</strong></div>
+                        <div><small>Hoja</small><strong>${card.hoja}</strong></div>
+                        <div><small>Campo usado</small><strong>${card.campo}</strong></div>
+                      </div>
+                    </div>`).join("")}
+                </div>
+              </article>`).join("")}
+          </div>
         </div>
       </div>
     </section>`;
