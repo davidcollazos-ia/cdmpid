@@ -224,9 +224,10 @@
 .guide-pill--realderivado,.guide-pill--mixto{background:#fff4dc;color:#a05d00}
 @media(max-width:1000px){.guide-kpis,.guide-notes{grid-template-columns:1fr}.guide-filters{grid-template-columns:1fr 1fr}.guide-filter--meta strong{font-size:24px}}
 @media(max-width:1200px){.guide-layout{grid-template-columns:1fr}.guide-sidebar{position:relative;top:auto}}
-.dashboard-shell{position:relative}
-.topic-menu{z-index:30}
-.topic-content{position:relative;z-index:1}
+.dashboard-shell{position:relative;isolation:isolate}
+.topic-menu{z-index:20;position:sticky}
+.topic-menu,.topic-menu *{pointer-events:auto}
+.topic-content{position:relative;z-index:0}
 .guide-panel{padding:14px 14px 16px;gap:10px}
 .guide-layout{gap:10px}
 .guide-filters{grid-template-columns:repeat(3,minmax(0,1fr)) repeat(4,minmax(0,1fr)) auto;margin:0}
