@@ -68,6 +68,27 @@ function sourceList(blocks) {
 }
 
 function summaryCards(view) {
+  if (view === "guide") {
+    const cards = [
+      ["Fuentes reales", "4", "Excel convertidos a JS"],
+      ["Vistas conectadas", "6", "Ya leen datos o agregados reales"],
+      ["Bloques simulados", "Parcial", "Todavía quedan maquetas"],
+      ["Estado", "Vivo", "La guía se actualizará con cada avance"],
+    ];
+    return cards
+      .map(
+        ([label, value, note], i) => `
+          <article class="kpi">
+            <div class="kpi-icon ${i % 2 === 0 ? "pink" : "purple"}">${i + 1}</div>
+            <div>
+              <h3>${label}</h3>
+              <div class="kpi-value">${value}</div>
+              <small>${note}</small>
+            </div>
+          </article>`
+      )
+      .join("");
+  }
   if (view === "s15") {
     const d = window.S15_RESULTS?.diagnostic;
     const c = window.S15_RESULTS?.city;
@@ -170,6 +191,87 @@ function renderMapCard(title, note) {
       <div class="leaflet-map" data-map="jerez-map"></div>
       <p class="map-note">${note}</p>
     </div>`;
+}
+
+function renderGuideSection() {
+  const guideRows = [
+    ["sim_diagnostico_turista.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Diagnostico Turista", "Pestaña 2 Perfil", "Real", "Base para procedencia, edad, sexo, viaje, gasto e inspiración"],
+    ["s15-results.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Resultados S15 agregados", "Pestañas 5 y 6", "Real", "Resume comportamiento, satisfacción y reputación"],
+    ["s15_citizen_profile.js", "Simulacion_Respuestas_Encuestas_Enoturismo_Jerez.xlsx", "Sim. Satisfaccion Ciudadania", "Pestaña 8 Residentes", "Real", "Zonas, género y edad de la ciudadanía"],
+    ["caso_prueba_pid_pymes_jerez_dela_frontera_v1_datoscdm.js", "caso_prueba_pid_pymes_jerez_dela_frontera_v1.xlsx", "DatosCdM", "Pestaña 9 Coyuntura", "Real", "Estancia media, ocupación, ADR, RevPAR y otros datos de contexto"],
+    ["window.DASHBOARD_DATA", "index.html", "Bloques del diagnóstico y resultado", "Pestañas 1 y 4", "Mixto", "Estructura y parte de la maqueta visual"],
+    ["Tarjetas manuales", "app.js", "Bloques visuales de diseño", "Pestañas 3, 5, 6 y 10", "Simulado", "Se irán sustituyendo por dato real cuando exista fuente"],
+  ];
+  const guideLabels = [
+    ["Fuentes reales", "4", "Excel convertidos a JS"],
+    ["Vistas conectadas", "6", "Ya leen datos o agregados reales"],
+    ["Bloques simulados", "Parcial", "Todavía quedan maquetas"],
+    ["Estado", "Vivo", "La guía se actualizará con cada avance"],
+  ];
+  return `
+    <section class="panel guide-panel">
+      <div class="topic-heading">
+        <div>
+          <small>GUÍA DE TRABAJO</small>
+          <h2>Inventario vivo de datos y simulaciones</h2>
+          <p>Esta pestaña resume qué sale de Excel, qué está calculado y qué sigue siendo simulado para priorizar el trabajo</p>
+        </div>
+      </div>
+      <div class="kpis guide-kpis">
+        ${guideLabels.map((card, idx) => `
+          <article class="kpi guide-kpi">
+            <div class="kpi-icon ${idx % 2 === 0 ? "pink" : "purple"}">${idx + 1}</div>
+            <div>
+              <h3>${card[0]}</h3>
+              <div class="kpi-value">${card[1]}</div>
+              <small>${card[2]}</small>
+            </div>
+          </article>`).join("")}
+      </div>
+      <div class="panel guide-table-panel">
+        <div class="block-head">
+          <div>
+            <h3>Inventario de fuentes</h3>
+            <p>Guía viva para seguir conectando datos y reducir la simulación</p>
+          </div>
+        </div>
+        <div class="guide-table-wrap">
+          <table class="guide-table">
+            <thead>
+              <tr>
+                <th>Archivo / origen</th>
+                <th>Excel</th>
+                <th>Hoja / dataset</th>
+                <th>Pestaña</th>
+                <th>Estado</th>
+                <th>Uso actual</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${guideRows.map((row) => `
+                <tr>
+                  <td><strong>${row[0]}</strong></td>
+                  <td>${row[1]}</td>
+                  <td>${row[2]}</td>
+                  <td>${row[3]}</td>
+                  <td><span class="guide-pill guide-pill--${normalize(row[4])}">${row[4]}</span></td>
+                  <td>${row[5]}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div class="guide-notes">
+          <article class="guide-note">
+            <h4>Lectura rápida</h4>
+            <p>Lo ya conectado es reutilizable y estable. Lo simulado se mantiene para diseño visual, pero esta pestaña dirá qué sustituir primero.</p>
+          </article>
+          <article class="guide-note">
+            <h4>Próximo foco</h4>
+            <p>Ir completando cada bloque con su fuente real y mantener aquí el estado de avance como hoja de ruta del proyecto.</p>
+          </article>
+        </div>
+      </div>
+    </section>`;
 }
 
 function renderResourceMap(block) {
@@ -1500,7 +1602,16 @@ function chunkBlocks(blocks, sizes) {
 }
 
 function render() {
-  if (state.view === "s15") {
+  if (state.view === "guide") {
+    el("summary-kpis").innerHTML = summaryCards("guide");
+    el("blocks").innerHTML = renderGuideSection();
+    el("s15-section").innerHTML = "";
+    el("subtitle").textContent = "Jerez de la Frontera · Guía viva de trabajo";
+    el("section-kicker").textContent = "GUÍA";
+    el("section-title").textContent = "Inventario de datos";
+    el("section-desc").textContent = "Fuentes reales, mixtas y simuladas";
+    el("sheet-note").textContent = "Esta pestaña se actualizará según vayamos incorporando más datos desde Excel u otras fuentes.";
+  } else if (state.view === "s15") {
     el("summary-kpis").innerHTML = summaryCards("s15");
     el("blocks").innerHTML = "";
     el("s15-section").innerHTML = renderS15Section();

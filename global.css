@@ -180,3 +180,23 @@
 .diag-tabs button small{font-size:9px}
 
 .kpi-icon{width:56px;height:56px;font-size:26px}
+.guide-panel{display:grid;gap:18px;padding:20px}
+.guide-kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin:0}
+.guide-kpi{padding:12px 14px}
+.guide-table-panel{padding:18px 18px 20px}
+.guide-table-wrap{overflow:auto;border:1px solid #eef0f5;border-radius:12px;background:#fff}
+.guide-table{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
+.guide-table thead th{position:sticky;top:0;background:#fbfbfe;color:var(--navy);font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:11px 12px;border-bottom:1px solid #eef0f5;z-index:1}
+.guide-table tbody td{padding:11px 12px;font-size:11px;line-height:1.35;border-bottom:1px solid #f0f2f7;vertical-align:top}
+.guide-table tbody tr:nth-child(even){background:#fcfcff}
+.guide-table tbody tr:hover{background:#fff3f8}
+.guide-table tbody td strong{color:var(--navy)}
+.guide-pill{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;font-size:9px;font-weight:800;line-height:1;text-transform:uppercase;letter-spacing:.4px}
+.guide-pill--real{background:#e8fbf1;color:#1c7f54}
+.guide-pill--mixto{background:#fff4dc;color:#a05d00}
+.guide-pill--simulado{background:#fde8f1;color:#b02e67}
+.guide-notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.guide-note{border:1px solid #eef0f5;border-radius:12px;background:#fff;padding:14px}
+.guide-note h4{margin:0 0 6px;font-size:12px}
+.guide-note p{margin:0;font-size:11px;line-height:1.45;color:#68708f}
+@media(max-width:1000px){.guide-kpis,.guide-notes{grid-template-columns:1fr}}
