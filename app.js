@@ -61,7 +61,8 @@ function sourceList(blocks) {
       if (!src || /^Bloque/.test(clean(row[0]))) continue;
       src.split(/\s*\/\s*|\s*-\s*/).forEach((part) => {
         const value = clean(part);
-        if (value) sources.add(value);
+        const match = value.match(/\bS\d+\b/gi);
+        if (match) match.forEach((code) => sources.add(code.toUpperCase()));
       });
     }
   }
