@@ -874,6 +874,125 @@ function renderDiagnosticDigitalCards() {
     </section>`;
 }
 
+function renderDiagnosticPromotionCards() {
+  const block = state.data.diagnostic.blocks[3];
+  const promo = window.PROMO_ANALYTICS || {};
+  const web = promo.web || {};
+  const app = promo.app || {};
+  const assistant = promo.assistant || {};
+  const pct = (num, den) => `${Math.round((Number(num || 0) / Math.max(1, Number(den || 1))) * 1000) / 10}%`;
+  const toItems = (obj, limit = 5) => Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([label, value], idx) => ({ label, value, color: palette[idx % palette.length] }));
+  const barLegend = (items) => `<div class="diag-chart-legend">${items.map((item) => `<div><i style="background:${item.color}"></i><span>${item.label}</span><small>${item.value}</small></div>`).join("")}</div>`;
+  const donut = (items, center, note) => `
+    <div class="diag-card-chart diag-card-chart--donut">
+      <div class="diag-card-ring" style="background:conic-gradient(${items.map((item, idx) => {
+        const start = items.slice(0, idx).reduce((sum, it) => sum + Number(it.value || 0), 0);
+        const end = start + Number(item.value || 0);
+        const total = items.reduce((sum, it) => sum + Number(it.value || 0), 0) || 1;
+        return `${item.color} ${Math.max(0, (start / total) * 100)}% ${Math.max(0, (end / total) * 100)}%`;
+      }).join(", ") || `${palette[0]} 0 100%`})">
+        <span>${center}</span>
+      </div>
+      ${barLegend(items)}
+      <small>${note}</small>
+    </div>`;
+  const bars = (items, note) => `
+    <div class="diag-card-chart diag-card-chart--bars">
+      <div class="diag-card-bars diag-card-bars--wide">
+        ${items.map((item) => `<i style="height:${Math.max(20, Math.min(100, item.value))}%;background:${item.color}" title="${item.label}: ${item.value}"></i>`).join("")}
+      </div>
+      ${barLegend(items)}
+      <small>${note}</small>
+    </div>`;
+  const cards = [
+    {
+      title: "Visitas a páginas / campaña",
+      desc: "Landing, web Marco de Jerez y sección de invierno",
+      source: "Sim. Analitica Web",
+      foot: `${web.sessions || 0} sesiones · ${web.winter_section || 0} vieron invierno`,
+      chart: donut(
+        [
+          { label: "Sección invierno", value: web.winter_section || 0, color: palette[0] },
+          { label: "Resto", value: Math.max(0, (web.sessions || 0) - (web.winter_section || 0)), color: "#e9edf6" },
+        ],
+        pct(web.winter_section || 0, web.sessions || 1),
+        "Tráfico que aterriza en la campaña"
+      ),
+    },
+    {
+      title: "Tasa de conversión",
+      desc: "Visita a la web -> reserva completada",
+      source: "Sim. Analitica Web",
+      foot: `${web.conversion || 0} reservas completadas`,
+      chart: bars(
+        [
+          { label: "Conversion", value: Math.round(((web.conversion || 0) / Math.max(1, web.winter_section || web.sessions || 1)) * 100), color: palette[1] },
+          { label: "Visitas invierno", value: Math.round(((web.winter_section || 0) / Math.max(1, web.sessions || 1)) * 100), color: palette[2] },
+          { label: "Sesiones totales", value: 100, color: palette[3] },
+        ],
+        "Funnel simplificado de campaña"
+      ),
+    },
+    {
+      title: "Origen del tráfico",
+      desc: "Canales que más aportan a la campaña",
+      source: "Sim. Analitica Web",
+      foot: "Canal de origen y mercados emisores",
+      chart: bars(
+        toItems(web.channels, 5).map((item) => ({ ...item, value: Math.round((item.value / Math.max(1, web.sessions || 1)) * 100) })),
+        "Mix de canales de entrada"
+      ),
+    },
+    {
+      title: "Apoyo digital multicanal",
+      desc: "App y asistente que empujan a la reserva",
+      source: "Sim. Analitica App / Asistente",
+      foot: `App: ${app.push || 0} push · ${app.itinerary || 0} itinerarios · Asistente: ${assistant.resolved || 0} resueltas`,
+      chart: `
+        <div class="diag-card-chart diag-card-chart--mini">
+          <div class="diag-card-mini">
+            <i style="width:${Math.max(30, Math.min(100, Math.round(((app.push || 0) / Math.max(1, app.sessions || 1)) * 100)))}%;background:${palette[0]}"></i>
+            <i style="width:${Math.max(30, Math.min(100, Math.round(((app.itinerary || 0) / Math.max(1, app.sessions || 1)) * 100)))}%;background:${palette[1]}"></i>
+            <i style="width:${Math.max(30, Math.min(100, Math.round(((assistant.booking || 0) / Math.max(1, assistant.sessions || 1)) * 100)))}%;background:${palette[2]}"></i>
+          </div>
+          <div class="diag-chart-legend">
+            <div><i style="background:${palette[0]}"></i><span>Push app</span><small>${pct(app.push || 0, app.sessions || 1)}</small></div>
+            <div><i style="background:${palette[1]}"></i><span>Itinerarios</span><small>${pct(app.itinerary || 0, app.sessions || 1)}</small></div>
+            <div><i style="background:${palette[2]}"></i><span>Deriva a reserva</span><small>${pct(assistant.booking || 0, assistant.sessions || 1)}</small></div>
+          </div>
+          <small>Señales de apoyo a la conversión en canales digitales</small>
+        </div>`,
+    },
+  ];
+  return `
+    <section class="panel diag-map-panel diag-profile-panel diag-digital-panel">
+      <div class="topic-heading">
+        <div>
+          <small>VISOR DE TARJETAS</small>
+          <h2>${block.title}</h2>
+          <p>Datos calculados desde las hojas Sim. Analitica Web, App y Asistente</p>
+        </div>
+      </div>
+      <div class="diag-profile-grid diag-digital-grid">
+        ${cards.map((card, idx) => `
+          <article class="diag-profile-card diag-digital-card">
+            <div class="diag-profile-card__head">
+              <div class="diag-profile-card__badge">${idx + 1}</div>
+              <div class="diag-profile-card__titles">
+                <h3>${card.title}</h3>
+                <p>${card.desc}</p>
+              </div>
+            </div>
+            ${card.chart}
+            <div class="diag-profile-card__foot">
+              <span>${card.source}</span>
+              <small>${card.foot}</small>
+            </div>
+          </article>`).join("")}
+      </div>
+    </section>`;
+}
+
 function renderDiagnosticBehaviorCards() {
   const block = state.data.diagnostic.blocks[4];
   const s15 = window.S15_RESULTS?.diagnostic || {};
@@ -1720,6 +1839,8 @@ function render() {
           ? renderDiagnosticProfileCards()
           : state.diagnosticTab === 2
             ? renderDiagnosticDigitalCards()
+          : state.diagnosticTab === 3
+            ? renderDiagnosticPromotionCards()
           : state.diagnosticTab === 4
               ? renderDiagnosticBehaviorCards()
             : state.diagnosticTab === 5
