@@ -424,11 +424,11 @@ function renderDiagnosticMap() {
     { label: "Con contacto", value: stats.coverage.contact, color: palette[2] },
     { label: "Con imagen", value: stats.coverage.media, color: palette[3] },
   ];
-  const summaryCards = [
-    { label: "Recursos", value: String(stats.items.length), note: "Total del JSON", tone: palette[0] },
-    { label: "Geolocalizados", value: String(stats.geolocated.length), note: "Con coordenadas", tone: palette[1] },
-    { label: "Cobertura", value: `${Math.round((stats.coverage.location / totalItems) * 100)}%`, note: "Con ubicación", tone: palette[3] },
-    { label: "Tipos", value: String(stats.byType.length), note: "Tipologías detectadas", tone: palette[2] },
+  const keyLayers = [
+    { label: "Nº de bodegas abiertas al enoturismo", value: stats.items.filter((item) => /winery/i.test(item.type)).length, note: "Bodegas geolocalizadas en el JSON" },
+    { label: "Nº de museos y centros de interpretación", value: stats.items.filter((item) => item.category === "Cultura").length, note: "Cultura, patrimonio y centros afines" },
+    { label: "Nº de instalaciones con reserva online", value: stats.coverage.contact, note: "Recursos con canal de contacto publicado" },
+    { label: "% de alojamientos con paquete enoturístico", value: `${Math.round((stats.items.filter((item) => item.category === "Alojamiento").length / totalGeo) * 100)}%`, note: "Proxy sobre la oferta geolocalizada" },
   ];
   const stackedBars = (items, title, note) => `
     <article class="diag-side-chart">
@@ -440,6 +440,12 @@ function renderDiagnosticMap() {
         ${items.map((item) => `<div class="diag-side-chart__bar"><i style="width:${Math.max(8, (item.value / Math.max(...items.map((x) => x.value), 1)) * 100)}%;background:${item.color}"></i><span>${item.label}</span><b>${item.value}</b></div>`).join("")}
       </div>
     </article>`;
+  const summaryCards = [
+    { label: "Recursos", value: String(stats.items.length), note: "Total del JSON", tone: palette[0], icon: "R" },
+    { label: "Geolocalizados", value: String(stats.geolocated.length), note: "Con coordenadas", tone: palette[1], icon: "G" },
+    { label: "Cobertura", value: `${Math.round((stats.coverage.location / totalItems) * 100)}%`, note: "Con ubicación", tone: palette[3], icon: "%" },
+    { label: "Tipos", value: String(stats.byType.length), note: "Tipologías detectadas", tone: palette[2], icon: "T" },
+  ];
   return `
     <section class="panel diag-map-panel">
       <div class="topic-heading">
@@ -449,14 +455,24 @@ function renderDiagnosticMap() {
           <p>Capas y tarjetas generadas desde el JSON de recursos geolocalizados</p>
         </div>
       </div>
-      <div class="diag-top-kpis">
-        ${summaryCards.map((card, idx) => `
-          <article class="diag-top-kpi">
-            <div class="diag-top-kpi__icon" style="background:${palette[idx % palette.length]}"></div>
+      <div class="diag-top-kpis diag-top-kpis--map">
+        ${summaryCards.map((card) => `
+          <article class="diag-top-kpi diag-top-kpi--fancy">
+            <div class="diag-top-kpi__icon" style="background:${card.tone}">${card.icon}</div>
             <div>
               <strong>${card.value}</strong>
               <span>${card.label}</span>
               <small>${card.note}</small>
+            </div>
+          </article>`).join("")}
+      </div>
+      <div class="diag-layer-strip">
+        ${keyLayers.map((layer, idx) => `
+          <article class="diag-layer-strip__item" style="--accent:${palette[idx % palette.length]}">
+            <i></i>
+            <div>
+              <strong>${layer.label}</strong>
+              <small>${layer.value} · ${layer.note}</small>
             </div>
           </article>`).join("")}
       </div>
@@ -471,26 +487,6 @@ function renderDiagnosticMap() {
           </div>
         </div>
         <aside class="diag-map-sidebar">
-          <div class="diag-side-summary">
-            ${summaryCards.map((card) => `
-              <article class="diag-side-summary__card">
-                <span style="background:${card.tone}"></span>
-                <div>
-                  <strong>${card.value}</strong>
-                  <b>${card.label}</b>
-                  <small>${card.note}</small>
-                </div>
-              </article>`).join("")}
-          </div>
-          <article class="diag-side-card">
-            <h3>Capas / indicadores</h3>
-            <div class="diag-side-mini">
-              <div class="diag-side-mini__item"><b>Nº de bodegas abiertas al enoturismo</b><small>${stats.items.filter((item) => /winery/i.test(item.type)).length} · Bodegas geolocalizadas en el JSON</small></div>
-              <div class="diag-side-mini__item"><b>Nº de museos y centros de interpretación</b><small>${stats.items.filter((item) => item.category === "Cultura").length} · Cultura, patrimonio y centros afines</small></div>
-              <div class="diag-side-mini__item"><b>Nº de instalaciones con reserva online</b><small>${stats.coverage.contact} · Recursos con canal de contacto publicado</small></div>
-              <div class="diag-side-mini__item"><b>% de alojamientos con paquete enoturístico</b><small>${Math.round((stats.items.filter((item) => item.category === "Alojamiento").length / totalGeo) * 100)}% · Proxy sobre la oferta geolocalizada</small></div>
-            </div>
-          </article>
           <article class="diag-side-card diag-side-card--chart">
             <h3>Cobertura del dato</h3>
             ${renderDonut(stats.coverage.location, stats.items.length, palette[1], "Con ubicación")}
