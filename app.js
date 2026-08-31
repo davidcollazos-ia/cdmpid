@@ -67,6 +67,99 @@ function sourceList(blocks) {
   return [...sources];
 }
 
+function getDiagnosticResourceData() {
+  return Array.isArray(window.DIAG_RESOURCE_JSON) ? window.DIAG_RESOURCE_JSON : [];
+}
+
+function stripLangSuffix(value) {
+  return clean(String(value ?? "")).replace(/\s*@(?:es|en)\b/gi, "").replace(/\s+/g, " ").trim();
+}
+
+function getResourceName(resource) {
+  const names = Array.isArray(resource?.name) ? resource.name : [];
+  return stripLangSuffix(names.find((name) => /@es\b/i.test(String(name))) || names[0] || resource?.uri || "Recurso");
+}
+
+function getResourceType(resource) {
+  const raw = Array.isArray(resource?.type) ? resource.type.find((value) => clean(value)) : resource?.type;
+  return stripLangSuffix(String(raw ?? "").split("#").pop() || raw || "Sin tipo");
+}
+
+function getResourceLocation(resource) {
+  const loc = Array.isArray(resource?.hasLocation) ? resource.hasLocation[0] : null;
+  if (!loc) return null;
+  const lat = Number((Array.isArray(loc.latitude) ? loc.latitude[0] : loc.latitude) ?? NaN);
+  const lng = Number((Array.isArray(loc.longitude) ? loc.longitude[0] : loc.longitude) ?? NaN);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return {
+    lat,
+    lng,
+    municipality: stripLangSuffix(Array.isArray(loc.municipality) ? loc.municipality[0] : loc.municipality),
+  };
+}
+
+function getResourceKeywords(resource) {
+  const desc = Array.isArray(resource?.hasDescription) ? resource.hasDescription : [];
+  return desc.flatMap((item) => Array.isArray(item.keyword) ? item.keyword : []).map(stripLangSuffix).filter(Boolean);
+}
+
+function resourceCategory(type, keywords = []) {
+  const kw = keywords.join(" ").toLowerCase();
+  const t = clean(type).toLowerCase();
+  if (/winery|enoteca/.test(t)) return "Bodegas";
+  if (/museum|culturecentre|touristattractionsite|church|monument/.test(t) || /flamenco|monumental/.test(kw)) return "Cultura";
+  if (/hotel|aparthotel|ruralhouse/.test(t) || /hoteles del vino|alojamiento/.test(kw)) return "Alojamiento";
+  if (/restaurant|cafeorcoffeeshop|cateringservice|pub/.test(t) || /gastronom/.test(kw)) return "Restauración";
+  if (/event|tour/.test(t) || /evento/.test(kw)) return "Eventos";
+  if (/naturalpark|naturalresource/.test(t) || /naturaleza|espacios naturales/.test(kw)) return "Naturaleza";
+  if (/travelagency/.test(t) || /agencias de viajes/.test(kw)) return "Agencias";
+  return "Otros";
+}
+
+function buildDiagnosticResourceStats() {
+  const items = getDiagnosticResourceData().map((resource) => {
+    const type = getResourceType(resource);
+    const keywords = getResourceKeywords(resource);
+    const location = getResourceLocation(resource);
+    return {
+      name: getResourceName(resource),
+      type,
+      keywords,
+      location,
+      hasDescription: Boolean(Array.isArray(resource?.hasDescription) && resource.hasDescription.length),
+      hasContact: Boolean(Array.isArray(resource?.hasContactPoint) && resource.hasContactPoint.length),
+      hasMedia: Boolean(Array.isArray(resource?.hasMultimedia) && resource.hasMultimedia.length && resource.hasMultimedia[0]?.mainImage?.[0] && resource.hasMultimedia[0].mainImage[0] !== "-"),
+      category: resourceCategory(type, keywords),
+    };
+  });
+  const geolocated = items.filter((item) => item.location);
+  const byCategory = [...new Map(items.map((item) => item.category).filter(Boolean).map((cat, idx, arr) => [cat, {
+    category: cat,
+    count: items.filter((item) => item.category === cat).length,
+    locCount: items.filter((item) => item.category === cat && item.location).length,
+    color: palette[arr.indexOf(cat) % palette.length],
+  }]))].map(([, value]) => value).sort((a, b) => b.count - a.count);
+  const byType = Object.values(items.reduce((acc, item) => {
+    const key = item.type || "Sin tipo";
+    acc[key] = acc[key] || { type: key, count: 0, locCount: 0 };
+    acc[key].count += 1;
+    acc[key].locCount += item.location ? 1 : 0;
+    return acc;
+  }, {})).sort((a, b) => b.count - a.count);
+  return {
+    items,
+    geolocated,
+    coverage: {
+      location: geolocated.length,
+      description: items.filter((item) => item.hasDescription).length,
+      contact: items.filter((item) => item.hasContact).length,
+      media: items.filter((item) => item.hasMedia).length,
+    },
+    byCategory,
+    byType,
+  };
+}
+
 function summaryCards(view) {
   if (view === "s15") {
     const d = window.S15_RESULTS?.diagnostic;
@@ -284,28 +377,98 @@ function renderDiagnosticTabs() {
 }
 
 function renderDiagnosticMap() {
-  const block = state.data.diagnostic.blocks[state.diagnosticTab];
-  const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/.test(clean(row[0]))).slice(0, 6);
-  const summary = rows
-    .map((row) => `<li><span>${clean(row[0])}</span><small>${valueFromRow(row).join(" · ")}</small></li>`)
-    .join("");
+  if (state.diagnosticTab !== 0) {
+    const block = state.data.diagnostic.blocks[state.diagnosticTab];
+    const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/.test(clean(row[0]))).slice(0, 6);
+    const summary = rows
+      .map((row) => `<li><span>${clean(row[0])}</span><small>${valueFromRow(row).join(" · ")}</small></li>`)
+      .join("");
+    return `
+      <section class="panel diag-map-panel">
+        <div class="topic-heading">
+          <div>
+            <small>VISOR DE MAPAS</small>
+            <h2>${block.title}</h2>
+            <p>${clean(rows[0]?.[1] || "")}</p>
+          </div>
+        </div>
+        <div class="diag-map-grid">
+          <div class="leaflet-map" data-map="diag-main-map"></div>
+          <div class="diag-side">
+            <div class="diag-side-card">
+              <h3>Capas / indicadores</h3>
+              <ul class="diag-layer-list">${summary}</ul>
+            </div>
+          </div>
+        </div>
+      </section>`;
+  }
+  const block = state.data.diagnostic.blocks[0];
+  const stats = buildDiagnosticResourceStats();
+  const layers = stats.byCategory.length ? stats.byCategory : [{ category: "Sin datos", count: 0, locCount: 0, color: palette[0] }];
+  const keyLayers = [
+    { label: "Nº de bodegas abiertas al enoturismo", value: stats.items.filter((item) => /winery/i.test(item.type)).length, note: "Bodegas geolocalizadas en el JSON" },
+    { label: "Nº de museos y centros de interpretación", value: stats.items.filter((item) => item.category === "Cultura").length, note: "Cultura, patrimonio y centros afines" },
+    { label: "Nº de instalaciones con reserva online", value: stats.coverage.contact, note: "Recursos con canal de contacto publicado" },
+    { label: "% de alojamientos con paquete enoturístico", value: Math.round((stats.items.filter((item) => item.category === "Alojamiento").length / Math.max(1, stats.geolocated.length)) * 100), note: "Proxy sobre la oferta geolocalizada" },
+  ];
+  const coverageLegend = [
+    { label: "Con ubicación", value: stats.coverage.location, color: palette[0] },
+    { label: "Con descripción", value: stats.coverage.description, color: palette[1] },
+    { label: "Con contacto", value: stats.coverage.contact, color: palette[2] },
+    { label: "Con imagen", value: stats.coverage.media, color: palette[3] },
+  ];
+  const topCards = [
+    { label: "Recursos", value: String(stats.items.length), note: "Total del JSON" },
+    { label: "Geolocalizados", value: String(stats.geolocated.length), note: "Con coordenadas" },
+    { label: "Categorías", value: String(stats.byCategory.length), note: "Capas temáticas" },
+    { label: "Cobertura", value: `${Math.round((stats.coverage.location / Math.max(1, stats.items.length)) * 100)}%`, note: "Recursos con ubicación" },
+  ];
   return `
     <section class="panel diag-map-panel">
       <div class="topic-heading">
         <div>
           <small>VISOR DE MAPAS</small>
           <h2>${block.title}</h2>
-          <p>${clean(rows[0]?.[1] || "")}</p>
+          <p>Capas y tarjetas generadas desde el JSON de recursos geolocalizados</p>
         </div>
       </div>
-      <div class="diag-map-grid">
-        <div class="leaflet-map" data-map="diag-main-map"></div>
-        <div class="diag-side">
-          <div class="diag-side-card">
-            <h3>Capas / indicadores</h3>
-            <ul class="diag-layer-list">${summary}</ul>
+      <div class="diag-top-kpis">
+        ${topCards.map((card, idx) => `
+          <article class="diag-top-kpi">
+            <div class="diag-top-kpi__icon" style="background:${palette[idx % palette.length]}"></div>
+            <div>
+              <strong>${card.value}</strong>
+              <span>${card.label}</span>
+              <small>${card.note}</small>
+            </div>
+          </article>`).join("")}
+      </div>
+      <div class="diag-map-layout">
+        <div class="diag-map-panel-main">
+          <div class="diag-map-toolbar">
+            ${layers.map((layer) => `<button type="button" class="diag-layer-chip active" data-resource-layer="${layer.category}" style="--swatch:${layer.color}"><i></i>${layer.category} · ${layer.count}</button>`).join("")}
+          </div>
+          <div class="diag-map-wrap">
+            <div class="leaflet-map" data-map="diag-main-map"></div>
+            <p class="diag-map-note">Las capas se pintan con los recursos del JSON y se pueden activar o desactivar.</p>
           </div>
         </div>
+        <aside class="diag-map-sidebar">
+          <article class="diag-side-card">
+            <h3>Capas / indicadores</h3>
+            <div class="diag-side-mini">
+              ${keyLayers.map((layer) => `<div class="diag-side-mini__item"><b>${layer.label}</b><small>${layer.value} · ${layer.note}</small></div>`).join("")}
+            </div>
+          </article>
+          <article class="diag-side-card">
+            <h3>Cobertura del dato</h3>
+            ${renderDonut(stats.coverage.location, stats.items.length, palette[1], "Con ubicación")}
+            <div class="diag-chart-legend">
+              ${coverageLegend.map((item) => `<div><i style="background:${item.color}"></i><span>${item.label}</span><small>${item.value}</small></div>`).join("")}
+            </div>
+          </article>
+        </aside>
       </div>
     </section>`;
 }
@@ -1527,11 +1690,12 @@ function render() {
               ? renderDiagnosticResidentsCards()
             : state.diagnosticTab === "coyuntura"
               ? renderDiagnosticCoyunturaCards()
-              : state.diagnosticTab === "medioamb"
+            : state.diagnosticTab === "medioamb"
                 ? renderDiagnosticMediumEnvCards()
             : renderDiagnosticMap();
       el("blocks").innerHTML = renderDiagnosticTabs() + diagnosticPanel;
       el("blocks").classList.add("diagnostic-view");
+      requestAnimationFrame(initLeafletMap);
     } else {
       el("blocks").classList.remove("diagnostic-view");
       const sizes = [4, 3];
@@ -1591,16 +1755,19 @@ function render() {
 }
 
 function initLeafletMap() {
-  const mapEls = document.querySelectorAll('[data-map="jerez-map"], [data-map="resources-map"], [data-map="residents-map"]');
+  const mapEls = document.querySelectorAll('[data-map="jerez-map"], [data-map="resources-map"], [data-map="residents-map"], [data-map="diag-main-map"]');
   if (!window.L) return;
   mapEls.forEach((mapEl) => {
     if (!mapEl || mapEl._mapInitialized) return;
     mapEl._mapInitialized = true;
     const map = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([36.686, -6.137], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(map);
+    mapEl._leafletMap = map;
+    if (mapEl.dataset.map !== "diag-main-map") {
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
+    }
     const points = mapEl.dataset.map === "resources-map"
       ? [
           { name: 'Bodegas abiertas al enoturismo', coords: [36.6868, -6.1388] },
@@ -1617,12 +1784,29 @@ function initLeafletMap() {
             { name: 'Entorno de bodegas', coords: [36.6808, -6.1258] },
             { name: 'Otras zonas del municipio', coords: [36.6958, -6.1345] },
           ]
-        : [
-          { name: 'Centro histórico', coords: [36.6868, -6.1388] },
-          { name: 'Barrio de Santiago', coords: [36.6860, -6.1425] },
-          { name: 'Entorno de bodegas', coords: [36.6808, -6.1258] },
-        ];
-    points.forEach((p) => L.marker(p.coords).addTo(map).bindTooltip(p.name));
+        : null;
+    if (mapEl.dataset.map === "diag-main-map") {
+      const stats = buildDiagnosticResourceStats();
+      const groups = {};
+      const bounds = [];
+      stats.geolocated.forEach((item) => {
+        const category = item.category || "Otros";
+        groups[category] = groups[category] || L.layerGroup().addTo(map);
+        const color = palette[Object.keys(groups).length % palette.length];
+        L.circleMarker([item.location.lat, item.location.lng], {
+          radius: 5,
+          color,
+          fillColor: color,
+          fillOpacity: 0.8,
+          weight: 1,
+        }).bindTooltip(item.name).addTo(groups[category]);
+        bounds.push([item.location.lat, item.location.lng]);
+      });
+      if (bounds.length) map.fitBounds(bounds, { padding: [20, 20] });
+      map._diagGroups = groups;
+    } else if (points) {
+      points.forEach((p) => L.marker(p.coords).addTo(map).bindTooltip(p.name));
+    }
     requestAnimationFrame(() => map.invalidateSize());
     setTimeout(() => map.invalidateSize(), 150);
   });
@@ -1637,6 +1821,21 @@ function init() {
       if (tabBtn) {
         state.diagnosticTab = Number(tabBtn.dataset.diagTab);
         render();
+        return;
+      }
+      const layerBtn = event.target.closest("[data-resource-layer]");
+      if (layerBtn) {
+        const mapEl = document.querySelector('[data-map="diag-main-map"]');
+        const map = mapEl?._leafletMap;
+        if (map && map._diagGroups) {
+          const category = layerBtn.dataset.resourceLayer;
+          const group = map._diagGroups[category];
+          if (group) {
+            const active = layerBtn.classList.toggle("active");
+            if (active) map.addLayer(group);
+            else map.removeLayer(group);
+          }
+        }
         return;
       }
       const sortBtn = event.target.closest("[data-coyuntura-sort-dir]");
