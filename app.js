@@ -1760,11 +1760,16 @@ function initLeafletMap() {
   mapEls.forEach((mapEl) => {
     if (!mapEl || mapEl._mapInitialized) return;
     mapEl._mapInitialized = true;
-    const map = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([36.686, -6.137], 13);
+    const map = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([36.78, -6.10], 10);
     mapEl._leafletMap = map;
-    if (mapEl.dataset.map !== "diag-main-map") {
+    if (mapEl.dataset.map === "diag-main-map") {
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
+    } else {
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
         maxZoom: 19,
       }).addTo(map);
     }
