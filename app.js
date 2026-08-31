@@ -406,24 +406,40 @@ function renderDiagnosticMap() {
   const block = state.data.diagnostic.blocks[0];
   const stats = buildDiagnosticResourceStats();
   const layers = stats.byCategory.length ? stats.byCategory : [{ category: "Sin datos", count: 0, locCount: 0, color: palette[0] }];
-  const keyLayers = [
-    { label: "Nº de bodegas abiertas al enoturismo", value: stats.items.filter((item) => /winery/i.test(item.type)).length, note: "Bodegas geolocalizadas en el JSON" },
-    { label: "Nº de museos y centros de interpretación", value: stats.items.filter((item) => item.category === "Cultura").length, note: "Cultura, patrimonio y centros afines" },
-    { label: "Nº de instalaciones con reserva online", value: stats.coverage.contact, note: "Recursos con canal de contacto publicado" },
-    { label: "% de alojamientos con paquete enoturístico", value: Math.round((stats.items.filter((item) => item.category === "Alojamiento").length / Math.max(1, stats.geolocated.length)) * 100), note: "Proxy sobre la oferta geolocalizada" },
-  ];
+  const totalItems = Math.max(1, stats.items.length);
+  const totalGeo = Math.max(1, stats.geolocated.length);
+  const typeList = stats.byType.slice(0, 5).map((item, idx) => ({
+    label: item.type,
+    value: item.count,
+    color: palette[idx % palette.length],
+  }));
+  const categoryList = stats.byCategory.slice(0, 5).map((item, idx) => ({
+    label: item.category,
+    value: item.count,
+    color: item.color || palette[idx % palette.length],
+  }));
   const coverageLegend = [
     { label: "Con ubicación", value: stats.coverage.location, color: palette[0] },
     { label: "Con descripción", value: stats.coverage.description, color: palette[1] },
     { label: "Con contacto", value: stats.coverage.contact, color: palette[2] },
     { label: "Con imagen", value: stats.coverage.media, color: palette[3] },
   ];
-  const topCards = [
-    { label: "Recursos", value: String(stats.items.length), note: "Total del JSON" },
-    { label: "Geolocalizados", value: String(stats.geolocated.length), note: "Con coordenadas" },
-    { label: "Categorías", value: String(stats.byCategory.length), note: "Capas temáticas" },
-    { label: "Cobertura", value: `${Math.round((stats.coverage.location / Math.max(1, stats.items.length)) * 100)}%`, note: "Recursos con ubicación" },
+  const summaryCards = [
+    { label: "Recursos", value: String(stats.items.length), note: "Total del JSON", tone: palette[0] },
+    { label: "Geolocalizados", value: String(stats.geolocated.length), note: "Con coordenadas", tone: palette[1] },
+    { label: "Cobertura", value: `${Math.round((stats.coverage.location / totalItems) * 100)}%`, note: "Con ubicación", tone: palette[3] },
+    { label: "Tipos", value: String(stats.byType.length), note: "Tipologías detectadas", tone: palette[2] },
   ];
+  const stackedBars = (items, title, note) => `
+    <article class="diag-side-chart">
+      <div class="diag-side-chart__head">
+        <h4>${title}</h4>
+        <small>${note}</small>
+      </div>
+      <div class="diag-side-chart__bars">
+        ${items.map((item) => `<div class="diag-side-chart__bar"><i style="width:${Math.max(8, (item.value / Math.max(...items.map((x) => x.value), 1)) * 100)}%;background:${item.color}"></i><span>${item.label}</span><b>${item.value}</b></div>`).join("")}
+      </div>
+    </article>`;
   return `
     <section class="panel diag-map-panel">
       <div class="topic-heading">
@@ -434,7 +450,7 @@ function renderDiagnosticMap() {
         </div>
       </div>
       <div class="diag-top-kpis">
-        ${topCards.map((card, idx) => `
+        ${summaryCards.map((card, idx) => `
           <article class="diag-top-kpi">
             <div class="diag-top-kpi__icon" style="background:${palette[idx % palette.length]}"></div>
             <div>
@@ -455,17 +471,43 @@ function renderDiagnosticMap() {
           </div>
         </div>
         <aside class="diag-map-sidebar">
+          <div class="diag-side-summary">
+            ${summaryCards.map((card) => `
+              <article class="diag-side-summary__card">
+                <span style="background:${card.tone}"></span>
+                <div>
+                  <strong>${card.value}</strong>
+                  <b>${card.label}</b>
+                  <small>${card.note}</small>
+                </div>
+              </article>`).join("")}
+          </div>
           <article class="diag-side-card">
             <h3>Capas / indicadores</h3>
             <div class="diag-side-mini">
-              ${keyLayers.map((layer) => `<div class="diag-side-mini__item"><b>${layer.label}</b><small>${layer.value} · ${layer.note}</small></div>`).join("")}
+              <div class="diag-side-mini__item"><b>Nº de bodegas abiertas al enoturismo</b><small>${stats.items.filter((item) => /winery/i.test(item.type)).length} · Bodegas geolocalizadas en el JSON</small></div>
+              <div class="diag-side-mini__item"><b>Nº de museos y centros de interpretación</b><small>${stats.items.filter((item) => item.category === "Cultura").length} · Cultura, patrimonio y centros afines</small></div>
+              <div class="diag-side-mini__item"><b>Nº de instalaciones con reserva online</b><small>${stats.coverage.contact} · Recursos con canal de contacto publicado</small></div>
+              <div class="diag-side-mini__item"><b>% de alojamientos con paquete enoturístico</b><small>${Math.round((stats.items.filter((item) => item.category === "Alojamiento").length / totalGeo) * 100)}% · Proxy sobre la oferta geolocalizada</small></div>
             </div>
           </article>
-          <article class="diag-side-card">
+          <article class="diag-side-card diag-side-card--chart">
             <h3>Cobertura del dato</h3>
             ${renderDonut(stats.coverage.location, stats.items.length, palette[1], "Con ubicación")}
             <div class="diag-chart-legend">
               ${coverageLegend.map((item) => `<div><i style="background:${item.color}"></i><span>${item.label}</span><small>${item.value}</small></div>`).join("")}
+            </div>
+          </article>
+          ${stackedBars(categoryList, "Capas por categoría", "Las familias temáticas más frecuentes")}
+          ${stackedBars(typeList, "Tipologías por tipo", "Los tipos de recurso más repetidos")}
+          <article class="diag-side-card diag-side-card--chart">
+            <h3>Visibilidad geográfica</h3>
+            ${renderDonut(stats.coverage.location, totalItems, palette[3], "Con ubicación")}
+            <div class="diag-chart-legend">
+              ${[
+                { label: "Con ubicación", value: stats.coverage.location, color: palette[0] },
+                { label: "Sin ubicación", value: totalItems - stats.coverage.location, color: "#e6e9f2" },
+              ].map((item) => `<div><i style="background:${item.color}"></i><span>${item.label}</span><small>${item.value}</small></div>`).join("")}
             </div>
           </article>
         </aside>
