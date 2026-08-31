@@ -1886,7 +1886,7 @@ function render() {
     requestAnimationFrame(initLeafletMap);
   } else {
     const dataset = state.data[state.view];
-    el("summary-kpis").innerHTML = summaryCards(state.view);
+    el("summary-kpis").innerHTML = state.view === "result" ? "" : summaryCards(state.view);
     if (state.view === "diagnostic") {
       const diagnosticPanel =
         state.diagnosticTab === 1
