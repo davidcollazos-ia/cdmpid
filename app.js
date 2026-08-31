@@ -1,6 +1,7 @@
 const state = {
   view: "diagnostic",
   diagnosticTab: 0,
+  resultTab: 0,
   data: null,
   coyuntura: {
     filters: {
@@ -507,6 +508,58 @@ function renderDiagnosticMap() {
             </div>
           </article>
         </aside>
+      </div>
+    </section>`;
+}
+
+function renderResultTabs() {
+  const blocks = state.data.result.blocks;
+  return `
+    <div class="result-tabs">
+      ${blocks
+        .map(
+          (block, idx) => `
+            <button type="button" class="${idx === state.resultTab ? "active" : ""}" data-result-tab="${idx}">
+              <b>${block.title.replace(/^\d+\.\s*/, "")}</b>
+              <div class="diag-tabs__meta">
+                <span>${idx + 1}</span>
+                <small>${countIndicators(block)} indicadores</small>
+              </div>
+            </button>`
+        )
+        .join("")}
+    </div>`;
+}
+
+function renderResultBlock() {
+  const block = state.data.result.blocks[state.resultTab] || state.data.result.blocks[0];
+  const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])));
+  const headers = ["Bloque", "Indicador", "Sin acción", "Con acción", "Efecto", "Meta", "Fuente", "Lectura"];
+  const tableRows = rows
+    .map(
+      (row) => `
+        <tr>
+          ${row
+            .slice(0, 8)
+            .map((cell, idx) => `<td${idx === 1 || idx === 7 ? ' class="result-table__wide"' : ""}>${clean(cell) || "—"}</td>`)
+            .join("")}
+        </tr>`
+    )
+    .join("");
+  return `
+    <section class="panel result-panel diag-map-panel">
+      <div class="topic-heading">
+        <div>
+          <small>VISOR DE RESULTADOS</small>
+          <h2>${clean(block.title)}</h2>
+          <p>Indicadores del bloque ${state.resultTab + 1} con lectura sin acción vs. con acción</p>
+        </div>
+      </div>
+      <div class="result-table-wrap">
+        <table class="result-table">
+          <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
       </div>
     </section>`;
 }
@@ -1855,6 +1908,9 @@ function render() {
       el("blocks").innerHTML = renderDiagnosticTabs() + diagnosticPanel;
       el("blocks").classList.add("diagnostic-view");
       requestAnimationFrame(initLeafletMap);
+    } else if (state.view === "result") {
+      el("blocks").classList.remove("diagnostic-view");
+      el("blocks").innerHTML = renderResultTabs() + renderResultBlock();
     } else {
       el("blocks").classList.remove("diagnostic-view");
       const sizes = [4, 3];
@@ -1888,6 +1944,12 @@ function render() {
       if (tabBtn && blocksEl.contains(tabBtn)) {
         const raw = tabBtn.dataset.diagTab;
         state.diagnosticTab = raw === "coyuntura" || raw === "medioamb" ? raw : Number(raw);
+        render();
+        return;
+      }
+      const resultTabBtn = event.target.closest("[data-result-tab]");
+      if (resultTabBtn && blocksEl.contains(resultTabBtn)) {
+        state.resultTab = Number(resultTabBtn.dataset.resultTab);
         render();
         return;
       }
