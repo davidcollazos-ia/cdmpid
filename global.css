@@ -51,6 +51,30 @@
 .result-tabs button.active{border-color:#ffb6ca;background:linear-gradient(135deg,#fff,#fff0f6);box-shadow:inset 0 0 0 1px #ffd5e3}
 .result-tabs button.active .diag-tabs__meta span{background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff}
 .result-panel{display:grid;gap:16px}
+.is-hidden{display:none!important}
+.result-demand-charts{display:grid;gap:12px}
+.result-demand-charts__intro{display:flex;align-items:end;justify-content:space-between;gap:12px;padding:2px 2px 0}
+.result-demand-charts__intro small{color:var(--pink);font-size:10px;font-weight:800;letter-spacing:.12em}
+.result-demand-charts__intro h3{margin:4px 0 0;color:var(--navy);font-size:16px}
+.result-demand-charts__intro>span{color:#68708f;font-size:10px}
+.result-demand-charts__grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.result-chart-card{min-width:0;border:1px solid #e9edf5;border-radius:14px;background:linear-gradient(145deg,#fff,#fbfbff);padding:13px 12px 12px;box-shadow:0 4px 14px #15245d08}
+.result-chart-card__head{display:flex;align-items:flex-start;gap:8px;min-height:43px}
+.result-chart-card__dot{width:10px;height:10px;border-radius:50%;margin-top:3px;flex:0 0 auto}
+.result-chart-card h3{margin:0;color:var(--navy);font-size:12px;line-height:1.15}
+.result-chart-card p{margin:4px 0 0;color:#68708f;font-size:9px;line-height:1.2}
+.result-chart__unit{margin:10px 0 8px;color:#68708f;font-size:9px;font-weight:700}
+.result-chart__bars{display:grid;gap:9px}
+.result-chart__bar-row{display:grid;gap:4px}
+.result-chart__bar-label{display:flex;justify-content:space-between;gap:6px;color:#68708f;font-size:9px;line-height:1.1}
+.result-chart__bar-label b{color:var(--navy);font-size:9px;text-align:right;white-space:nowrap}
+.result-chart__track{height:9px;border-radius:999px;background:#edf0f6;overflow:hidden}
+.result-chart__track i{display:block;height:100%;border-radius:999px;min-width:4px}
+.result-chart__track i.muted{opacity:.36}
+.result-chart__empty{display:grid;gap:4px;color:#68708f;font-size:9px}
+.result-chart__empty b{color:#a1a7bb;font-size:9px;font-weight:600}
+.result-chart__effect{display:block;margin-top:11px;padding-top:8px;border-top:1px solid #edf0f6;color:#68708f;font-size:9px;line-height:1.25}
+.result-chart__source{display:block;margin-top:8px;color:var(--navy);font-size:9px;font-weight:700;line-height:1.2;text-align:right;overflow-wrap:anywhere}
 .result-table-wrap{overflow:auto;border:1px solid #eef0f5;border-radius:14px;background:#fff}
 .result-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1320px;background:#fff}
 .result-table thead th{position:sticky;top:0;background:#fbfbfe;color:var(--navy);font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:12px 10px;border-bottom:1px solid #edf0f6;text-align:left;vertical-align:bottom}
@@ -194,7 +218,8 @@
 .diag-tabs button small{font-size:9px}
 @media(max-width:1200px){.result-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:1000px){.result-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.result-tabs button{min-height:64px;padding:11px 12px;gap:9px;grid-template-columns:28px 1fr}.result-tabs button>span{width:28px;height:28px;font-size:12px}.result-tabs button b{font-size:11px}.result-tabs button small{font-size:9px}.result-table{min-width:900px}.result-table td.result-table__wide{min-width:180px}}
+@media(max-width:1200px){.result-demand-charts__grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.result-tabs button{min-height:64px;padding:11px 12px;gap:9px;grid-template-columns:28px 1fr}.result-tabs button>span{width:28px;height:28px;font-size:12px}.result-tabs button b{font-size:11px}.result-tabs button small{font-size:9px}.result-demand-charts__intro{display:block}.result-demand-charts__intro>span{display:block;margin-top:5px}.result-demand-charts__grid{grid-template-columns:1fr 1fr}.result-table{min-width:900px}.result-table td.result-table__wide{min-width:180px}}
 
 .kpi-icon{width:56px;height:56px;font-size:26px}
 .guide-panel{display:grid;gap:18px;padding:20px}

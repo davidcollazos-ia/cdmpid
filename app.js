@@ -532,6 +532,77 @@ function renderResultTabs() {
     </div>`;
 }
 
+function renderResultDemandCharts() {
+  const block = state.data.result.blocks[0];
+  if (!block) return "";
+  const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])));
+  const numberFrom = (value) => {
+    const match = String(value || "").replace(/\./g, "").match(/-?\d+(?:,\d+)?/);
+    return match ? Number(match[0].replace(",", ".")) : null;
+  };
+  const configs = [
+    { title: "Visitantes enoturísticos", short: "Visitantes enero-marzo", unit: "visitantes", color: "#ff246d" },
+    { title: "Visitantes repetidores", short: "Repetición tras la acción", unit: "% de visitantes", color: "#7432c4" },
+    { title: "Peso de enero-marzo", short: "Peso sobre el total anual", unit: "% del total anual", color: "#23845a" },
+    { title: "Captación de la acción", short: "Visitantes captados por invierno", unit: "% de visitantes", color: "#ff7417" },
+    { title: "Ocupación de experiencias", short: "Bodegas y experiencias participantes", unit: "% de ocupación", color: "#3066fe" },
+  ];
+  const cards = configs.map((config, index) => {
+    const row = rows[index] || [];
+    const before = numberFrom(row[2]);
+    const after = numberFrom(row[3]);
+    const values = [before, after].filter((value) => value !== null);
+    const max = Math.max(...values, 1);
+    const bar = (label, value, muted = false) => value === null
+      ? `<div class="result-chart__empty"><span>${label}</span><b>Sin dato de partida</b></div>`
+      : `<div class="result-chart__bar-row"><div class="result-chart__bar-label"><span>${label}</span><b>${value.toLocaleString("es-ES")} ${config.unit}</b></div><div class="result-chart__track"><i class="${muted ? "muted" : ""}" style="width:${Math.max(4, (value / max) * 100)}%;background:${config.color}"></i></div></div>`;
+    return `
+      <article class="result-chart-card">
+        <div class="result-chart-card__head"><span class="result-chart-card__dot" style="background:${config.color}"></span><div><h3>${config.title}</h3><p>${config.short}</p></div></div>
+        <div class="result-chart__unit">Unidad: ${config.unit}</div>
+        <div class="result-chart__bars">${bar("Sin acción", before, true)}${bar("Con acción", after)}</div>
+        <small class="result-chart__effect">${clean(row[4]) || "Comparación ilustrativa"}</small>
+        <small class="result-chart__source">Fuente: ${clean(row[6]) || "No especificada"}</small>
+      </article>`;
+  }).join("");
+  return `<div class="result-demand-charts"><div class="result-demand-charts__intro"><div><small>INDICADORES CLAVE</small><h3>Demanda y desestacionalización</h3></div><span>Comparativa sin acción / con acción</span></div><div class="result-demand-charts__grid">${cards}</div></div>`;
+}
+
+function renderResultOfferCharts() {
+  const block = state.data.result.blocks[1];
+  if (!block) return "";
+  const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])));
+  const numberFrom = (value) => {
+    const match = String(value || "").replace(/\./g, "").match(/-?\d+(?:,\d+)?/);
+    return match ? Number(match[0].replace(",", ".")) : null;
+  };
+  const configs = [
+    { title: "Oferta de invierno", short: "Bodegas y recursos activos", unit: "bodegas y recursos", color: "#ff246d" },
+    { title: "Experiencias creadas", short: "Productos específicos enero-marzo", unit: "experiencias", color: "#7432c4" },
+    { title: "Empresas colaboradoras", short: "Cooperación entre agentes", unit: "colaboraciones", color: "#23845a" },
+    { title: "Rutas combinadas", short: "Bodega + otros recursos", unit: "itinerarios", color: "#3066fe" },
+  ];
+  const cards = configs.map((config, index) => {
+    const row = rows[index] || [];
+    const before = numberFrom(row[2]);
+    const after = numberFrom(row[3]);
+    const values = [before, after].filter((value) => value !== null);
+    const max = Math.max(...values, 1);
+    const bar = (label, value, muted = false) => value === null
+      ? `<div class="result-chart__empty"><span>${label}</span><b>Sin dato de partida</b></div>`
+      : `<div class="result-chart__bar-row"><div class="result-chart__bar-label"><span>${label}</span><b>${value.toLocaleString("es-ES")} ${config.unit}</b></div><div class="result-chart__track"><i class="${muted ? "muted" : ""}" style="width:${Math.max(4, (value / max) * 100)}%;background:${config.color}"></i></div></div>`;
+    return `
+      <article class="result-chart-card">
+        <div class="result-chart-card__head"><span class="result-chart-card__dot" style="background:${config.color}"></span><div><h3>${config.title}</h3><p>${config.short}</p></div></div>
+        <div class="result-chart__unit">Unidad: ${config.unit}</div>
+        <div class="result-chart__bars">${bar("Sin acción", before, true)}${bar("Con acción", after)}</div>
+        <small class="result-chart__effect">${clean(row[4]) || "Comparación ilustrativa"}</small>
+        <small class="result-chart__source">Fuente: ${clean(row[6]) || "No especificada"}</small>
+      </article>`;
+  }).join("");
+  return `<div class="result-demand-charts"><div class="result-demand-charts__intro"><div><small>INDICADORES CLAVE</small><h3>Oferta y cooperación</h3></div><span>Comparativa sin acción / con acción</span></div><div class="result-demand-charts__grid">${cards}</div></div>`;
+}
+
 function renderResultBlock() {
   const block = state.data.result.blocks[state.resultTab] || state.data.result.blocks[0];
   const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])));
@@ -556,12 +627,13 @@ function renderResultBlock() {
           <p>Indicadores del bloque ${state.resultTab + 1} con lectura sin acción vs. con acción</p>
         </div>
       </div>
-      <div class="result-table-wrap">
+      ${state.resultTab === 0 ? renderResultDemandCharts() : state.resultTab === 1 ? renderResultOfferCharts() : ""}
+      ${state.resultTab === 0 ? "" : `<div class="result-table-wrap">
         <table class="result-table">
           <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
           <tbody>${tableRows}</tbody>
         </table>
-      </div>
+      </div>`}
     </section>`;
 }
 
@@ -1876,6 +1948,7 @@ function chunkBlocks(blocks, sizes) {
 function render() {
   if (state.view === "s15") {
     el("summary-kpis").innerHTML = summaryCards("s15");
+    el("summary-kpis").classList.remove("is-hidden");
     el("blocks").innerHTML = "";
     el("s15-section").innerHTML = renderS15Section();
     el("subtitle").textContent = "Jerez de la Frontera · Resultados S15";
@@ -1887,6 +1960,7 @@ function render() {
   } else {
     const dataset = state.data[state.view];
     el("summary-kpis").innerHTML = state.view === "result" ? "" : summaryCards(state.view);
+    el("summary-kpis").classList.toggle("is-hidden", state.view === "result");
     if (state.view === "diagnostic") {
       const diagnosticPanel =
         state.diagnosticTab === 1
@@ -1921,7 +1995,7 @@ function render() {
     }
     el("s15-section").innerHTML = "";
     el("subtitle").textContent =
-      state.view === "diagnostic" ? "" : "Jerez de la Frontera · Resultado simulado";
+      state.view === "diagnostic" || state.view === "result" ? "" : "Jerez de la Frontera · Resultado simulado";
     el("section-kicker").textContent = state.view === "diagnostic" ? "DIAGNÓSTICO" : "RESULTADO";
     el("section-title").textContent =
       state.view === "diagnostic" ? "Cuadro de mando diagnóstico" : "Cuadro de mando de resultado";
