@@ -667,6 +667,75 @@ function renderResultPromotionCharts() {
   return `<div class="result-promo-module"><aside class="result-promo-subnav"><small>ANALÍTICA</small>${subTabs.map((label, index) => `<button type="button" class="${state.promoSubTab === index ? "active" : ""}" data-promo-subtab="${index}"><span>${index + 1}</span><b>${label}</b></button>`).join("")}</aside><div class="result-promo-content"><div class="result-demand-charts__intro"><div><small>INDICADORES CLAVE</small><h3>${subTabs[state.promoSubTab]}</h3></div><span>${state.promoSubTab === 0 ? "Comparativa y analítica de canales" : "Datos calculados desde la hoja de respuestas"}</span></div>${content}</div></div>`;
 }
 
+function renderResultEconomicCharts() {
+  const block = state.data.result.blocks[3];
+  if (!block) return "";
+  const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])));
+  const configs = [
+    { title: "Ingresos de la campaña", unit: "€", color: "#ff246d" },
+    { title: "Gasto medio por visitante", unit: "€ por visitante", color: "#7432c4" },
+    { title: "Venta complementaria", unit: "% de incremento", color: "#ff7417" },
+    { title: "Estancia media", unit: "noches", color: "#23845a" },
+  ];
+  const numberFrom = (value) => {
+    const match = String(value || "").replace(/\./g, "").match(/-?\d+(?:,\d+)?/);
+    return match ? Number(match[0].replace(",", ".")) : null;
+  };
+  const cards = configs.map((config, index) => {
+    const row = rows[index] || [];
+    const before = numberFrom(row[2]);
+    const after = numberFrom(row[3]);
+    const delta = before !== null && after !== null ? after - before : null;
+    const deltaText = delta === null ? "Indicador nuevo" : `${delta > 0 ? "+" : ""}${delta.toLocaleString("es-ES")} ${config.unit}`;
+    return `<article class="result-impact-card"><div class="result-chart-card__head"><span class="result-chart-card__dot" style="background:${config.color}"></span><div><h3>${config.title}</h3><p>Situación antes y después de la campaña</p></div></div><div class="result-impact-values"><div><small>ANTES</small><b>${before === null ? "N/D" : `${before.toLocaleString("es-ES")} ${config.unit}`}</b></div><span class="result-impact-arrow">→</span><div class="result-impact-values__after"><small>CON CAMPAÑA</small><b>${after === null ? "N/D" : `${after.toLocaleString("es-ES")} ${config.unit}`}</b></div></div><div class="result-impact-delta" style="color:${config.color}">${deltaText}</div><small class="result-impact-meta">Meta: ${clean(row[5]) || "Sin meta definida"}</small><small class="result-chart__source">Fuente: ${clean(row[6]) || "No especificada"}</small></article>`;
+  }).join("");
+  return `<section class="result-economic-section"><div class="result-demand-charts__intro"><div><small>IMPACTO ECONÓMICO</small><h3>Cambio antes / después de la campaña</h3></div><span>Lectura independiente por unidad</span></div><div class="result-impact-grid">${cards}</div></section>`;
+}
+
+function renderResultComparisonCards(blockIndex, kicker, title, subtitle) {
+  const block = state.data.result.blocks[blockIndex];
+  if (!block) return "";
+  const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])) && clean(row[1]));
+  const numberFrom = (value) => {
+    const match = String(value || "").replace(/\./g, "").match(/-?\d+(?:,\d+)?/);
+    return match ? Number(match[0].replace(",", ".")) : null;
+  };
+  const colors = ["#ff246d", "#7432c4", "#23845a", "#ff7417", "#3066fe"];
+  const cards = rows.map((row, index) => {
+    const before = numberFrom(row[2]);
+    const after = numberFrom(row[3]);
+    const isNumeric = blockIndex === 5 && index === 0 ? false : before !== null || after !== null;
+    const delta = before !== null && after !== null ? after - before : null;
+    const color = colors[index % colors.length];
+    const value = (n) => n === null ? "N/D" : n.toLocaleString("es-ES");
+    const body = isNumeric
+      ? `<div class="result-impact-values"><div><small>ANTES</small><b>${value(before)}</b></div><span class="result-impact-arrow">→</span><div class="result-impact-values__after"><small>CON CAMPAÑA</small><b>${value(after)}</b></div></div><div class="result-impact-delta" style="color:${color}">${delta === null ? "Indicador nuevo" : `${delta > 0 ? "+" : ""}${delta.toLocaleString("es-ES")} de variación`}</div>`
+      : `<div class="result-reading-card"><small>RESULTADO CON CAMPAÑA</small><p>${clean(row[3]) || "Sin detalle disponible"}</p></div>`;
+    return `<article class="result-impact-card ${isNumeric ? "" : "result-impact-card--reading"}"><div class="result-chart-card__head"><span class="result-chart-card__dot" style="background:${color}"></span><div><h3>${clean(row[1])}</h3><p>${clean(row[0])}</p></div></div>${body}<small class="result-impact-meta">Meta: ${clean(row[5]) || "Sin meta definida"}</small><small class="result-chart__source">Fuente: ${clean(row[6]) || "No especificada"}</small></article>`;
+  }).join("");
+  return `<section class="result-economic-section"><div class="result-demand-charts__intro"><div><small>${kicker}</small><h3>${title}</h3></div><span>${subtitle}</span></div><div class="result-impact-grid result-impact-grid--flex">${cards}</div></section>`;
+}
+
+function renderResultClosure() {
+  const block = state.data.result.blocks[6];
+  if (!block) return "";
+  const rows = block.rows.filter((row) => clean(row[0]) && clean(row[1]));
+  const objectiveRows = rows.slice(0, 2);
+  const learningRows = rows.slice(2, 5);
+  const numberFrom = (value) => {
+    const match = String(value || "").replace(/\./g, "").match(/-?\d+(?:,\d+)?/);
+    return match ? Number(match[0].replace(",", ".")) : null;
+  };
+  const objectiveCards = objectiveRows.map((row, index) => {
+    const actual = numberFrom(row[3]);
+    const completion = numberFrom(row[4]);
+    const color = index === 0 ? "#ff246d" : "#7432c4";
+    return `<article class="result-objective-card"><div class="result-chart-card__head"><span class="result-chart-card__dot" style="background:${color}"></span><div><h3>${clean(row[1])}</h3><p>Resultado del objetivo</p></div></div><div class="result-objective-card__value" style="color:${color}">${clean(row[3]) || "N/D"}</div><div class="result-objective-card__progress"><i style="width:${Math.min(100, Math.max(4, completion || 0))}%;background:${color}"></i></div><div class="result-objective-card__footer"><span>Cumplimiento</span><b>${completion === null ? "N/D" : `${completion.toLocaleString("es-ES")}%`}</b></div><small class="result-chart__source">Fuente: ${clean(row[6]) || "No especificada"}</small></article>`;
+  }).join("");
+  const learningCards = learningRows.map((row, index) => `<article class="result-conclusion-card ${index === 2 ? "result-conclusion-card--decision" : ""}"><div class="result-conclusion-card__label"><span>${index === 0 ? "01" : index === 1 ? "02" : "03"}</span><small>${index === 2 ? "DECISIÓN ACT" : "CONCLUSIÓN"}</small></div><h3>${clean(row[1])}</h3><p>${clean(row[3])}</p><small class="result-chart__source">Fuente: ${clean(row[6]) || "No especificada"}</small></article>`).join("");
+  return `<section class="result-closure"><div class="result-demand-charts__intro"><div><small>CIERRE DEL CICLO</small><h3>Conclusiones de la campaña</h3></div><span>Resultados, aprendizajes y siguiente decisión</span></div><div class="result-objectives">${objectiveCards}</div><div class="result-conclusions-heading"><small>LECTURA EJECUTIVA</small><h3>Qué hemos aprendido</h3></div><div class="result-conclusions">${learningCards}</div></section>`;
+}
+
 function renderResultBlock() {
   const block = state.data.result.blocks[state.resultTab] || state.data.result.blocks[0];
   const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])));
@@ -691,8 +760,8 @@ function renderResultBlock() {
           <p>Indicadores del bloque ${state.resultTab + 1} con lectura sin acción vs. con acción</p>
         </div>
       </div>
-      ${state.resultTab === 0 ? renderResultDemandCharts() : state.resultTab === 1 ? renderResultOfferCharts() : state.resultTab === 2 ? renderResultPromotionCharts() : ""}
-      ${state.resultTab <= 2 ? "" : `<div class="result-table-wrap">
+      ${state.resultTab === 0 ? renderResultDemandCharts() : state.resultTab === 1 ? renderResultOfferCharts() : state.resultTab === 2 ? renderResultPromotionCharts() : state.resultTab === 3 ? renderResultEconomicCharts() : state.resultTab === 4 ? renderResultComparisonCards(4, "EXPERIENCIA Y REPUTACIÓN", "Satisfacción, reputación y aprendizaje", "Lectura antes / después de la campaña") : state.resultTab === 5 ? renderResultComparisonCards(5, "IMPACTO EN CIUDADANÍA", "Visión de los residentes", "Percepción ciudadana antes / después") : state.resultTab === 6 ? renderResultClosure() : ""}
+      ${state.resultTab <= 6 ? "" : `<div class="result-table-wrap">
         <table class="result-table">
           <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
           <tbody>${tableRows}</tbody>
