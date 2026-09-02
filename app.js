@@ -2,6 +2,7 @@ const state = {
   view: "diagnostic",
   diagnosticTab: 0,
   resultTab: 0,
+  promoSubTab: 0,
   data: null,
   coyuntura: {
     filters: {
@@ -603,6 +604,69 @@ function renderResultOfferCharts() {
   return `<div class="result-demand-charts"><div class="result-demand-charts__intro"><div><small>INDICADORES CLAVE</small><h3>Oferta y cooperación</h3></div><span>Comparativa sin acción / con acción</span></div><div class="result-demand-charts__grid">${cards}</div></div>`;
 }
 
+function renderResultPromotionCharts() {
+  const block = state.data.result.blocks[2];
+  if (!block) return "";
+  const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])));
+  const numberFrom = (value) => {
+    const match = String(value || "").replace(/\./g, "").match(/-?\d+(?:,\d+)?/);
+    return match ? Number(match[0].replace(",", ".")) : null;
+  };
+  const configs = [
+    { title: "Visitas a la campaña", short: "Tráfico mensual de la acción", unit: "visitas/mes", color: "#ff246d" },
+    { title: "Tasa de conversión", short: "Visita a la página que termina en reserva", unit: "%", color: "#7432c4" },
+    { title: "Menciones e interacciones", short: "Conversación sobre enoturismo de invierno", unit: "menciones/mes", color: "#23845a" },
+  ];
+  const cards = configs.map((config, index) => {
+    const row = rows[index] || [];
+    const before = numberFrom(row[2]);
+    const after = numberFrom(row[3]);
+    const values = [before, after].filter((value) => value !== null);
+    const max = Math.max(...values, 1);
+    const bar = (label, value, muted = false) => value === null
+      ? `<div class="result-chart__empty"><span>${label}</span><b>Sin dato de partida</b></div>`
+      : `<div class="result-chart__bar-row"><div class="result-chart__bar-label"><span>${label}</span><b>${value.toLocaleString("es-ES")} ${config.unit}</b></div><div class="result-chart__track"><i class="${muted ? "muted" : ""}" style="width:${Math.max(4, (value / max) * 100)}%;background:${config.color}"></i></div></div>`;
+    return `<article class="result-chart-card"><div class="result-chart-card__head"><span class="result-chart-card__dot" style="background:${config.color}"></span><div><h3>${config.title}</h3><p>${config.short}</p></div></div><div class="result-chart__unit">Unidad: ${config.unit}</div><div class="result-chart__bars">${bar("Sin acción", before, true)}${bar("Con acción", after)}</div><small class="result-chart__effect">${clean(row[4]) || "Comparación ilustrativa"}</small><small class="result-chart__source">Fuente: ${clean(row[6]) || "No especificada"}</small></article>`;
+  }).join("");
+  const distributionCard = (title, short, items, unit, color, source, mode = "bars") => {
+    const entries = Object.entries(items || {});
+    const max = Math.max(...entries.map(([, value]) => Number(value) || 0), 1);
+    const total = entries.reduce((sum, [, value]) => sum + (Number(value) || 0), 0) || 1;
+    const colors = [color, "#ff246d", "#3066fe", "#ff7417", "#14b8a6", "#f3b300"];
+    const donut = mode === "donut" ? `<div class="result-donut-wrap"><div class="result-donut" style="background:conic-gradient(${entries.map(([, value], index) => { const start = entries.slice(0, index).reduce((sum, [, item]) => sum + (Number(item) || 0), 0) / total * 100; const end = start + (Number(value) || 0) / total * 100; return `${colors[index % colors.length]} ${start}% ${end}%`; }).join(", ")})"><span>${total.toLocaleString("es-ES")}</span></div><small>Total ${unit}</small></div><div class="result-donut-legend">${entries.map(([label, value], index) => `<div><i style="background:${colors[index % colors.length]}"></i><span>${clean(label)}</span><b>${Number(value).toLocaleString("es-ES")}</b></div>`).join("")}</div>` : "";
+    const funnel = mode === "funnel" ? `<div class="result-funnel">${entries.map(([label, value], index) => `<div class="result-funnel__row"><div class="result-funnel__label"><span>${clean(label)}</span><b>${Number(value).toLocaleString("es-ES")}</b></div><div class="result-funnel__track"><i style="width:${Math.max(12, (Number(value) / max) * 100)}%;background:${colors[index % colors.length]}"></i></div></div>`).join("")}</div>` : "";
+    const bars = mode === "bars" ? `<div class="result-chart__bars">${entries.map(([label, value]) => `<div class="result-chart__bar-row"><div class="result-chart__bar-label"><span>${clean(label)}</span><b>${Number(value).toLocaleString("es-ES")} ${unit}</b></div><div class="result-chart__track"><i style="width:${Math.max(4, (Number(value) / max) * 100)}%;background:${color}"></i></div></div>`).join("")}</div>` : "";
+    return `<article class="result-chart-card result-chart-card--distribution"><div class="result-chart-card__head"><span class="result-chart-card__dot" style="background:${color}"></span><div><h3>${title}</h3><p>${short}</p></div></div><div class="result-chart__unit">Unidad: ${unit}</div>${donut}${funnel}${bars}<small class="result-chart__source">Fuente: ${source}</small></article>`;
+  };
+  const analytics = window.PROMO_ANALYTICS || {};
+  const extraCards = [
+    distributionCard("Origen del tráfico web", "Canales que llevan visitas a la campaña", analytics.web?.channels, "sesiones", "#ff7417", "Sim. Analítica Web", "donut"),
+    distributionCard("Embudo de la app", "Interacción con la acción de invierno", { "Sesiones": analytics.app?.sessions, "Notificación recibida": analytics.app?.push, "Itinerario creado": analytics.app?.itinerary, "Reserva completada": analytics.app?.booking }, "sesiones", "#7432c4", "Sim. Analítica App", "funnel"),
+    distributionCard("Embudo del asistente", "Consultas y derivaciones a reserva", { "Interacciones": analytics.assistant?.sessions, "Consultas de invierno": analytics.assistant?.winter, "Resueltas": analytics.assistant?.resolved, "Derivadas a reserva/web": analytics.assistant?.booking }, "interacciones", "#23845a", "Sim. Analítica Asistente", "donut"),
+    distributionCard("Secciones más utilizadas", "Navegación dentro de la aplicación", analytics.app?.sections, "sesiones", "#3066fe", "Sim. Analítica App"),
+  ].join("");
+  const webCards = [
+    distributionCard("Origen del tráfico", "Canales que llevan visitas a la campaña", analytics.web?.channels, "sesiones", "#ff7417", "Sim. Analítica Web", "donut"),
+    distributionCard("Páginas de aterrizaje", "Dónde comienza la navegación", analytics.web?.landing, "sesiones", "#3066fe", "Sim. Analítica Web"),
+    distributionCard("País del visitante", "Procedencia de las sesiones web", analytics.web?.countries, "sesiones", "#14b8a6", "Sim. Analítica Web"),
+  ].join("");
+  const appCards = [
+    distributionCard("Embudo de interacción", "Del acceso a la reserva completada", { "Sesiones": analytics.app?.sessions, "Notificación recibida": analytics.app?.push, "Itinerario creado": analytics.app?.itinerary, "Reserva completada": analytics.app?.booking }, "sesiones", "#7432c4", "Sim. Analítica App", "funnel"),
+    distributionCard("Secciones más utilizadas", "Navegación dentro de la aplicación", analytics.app?.sections, "sesiones", "#3066fe", "Sim. Analítica App"),
+    distributionCard("Tipo de usuario", "Usuarios nuevos y recurrentes", analytics.app?.user_type, "sesiones", "#ff246d", "Sim. Analítica App", "donut"),
+    distributionCard("Sistema operativo", "Dispositivo de acceso a la app", analytics.app?.os, "sesiones", "#23845a", "Sim. Analítica App", "donut"),
+  ].join("");
+  const assistantCards = [
+    distributionCard("Embudo del asistente", "Consultas y derivaciones a reserva", { "Interacciones": analytics.assistant?.sessions, "Consultas de invierno": analytics.assistant?.winter, "Resueltas": analytics.assistant?.resolved, "Derivadas a reserva/web": analytics.assistant?.booking }, "interacciones", "#23845a", "Sim. Analítica Asistente", "funnel"),
+    distributionCard("Temas consultados", "Necesidades más frecuentes", analytics.assistant?.topics, "consultas", "#ff7417", "Sim. Analítica Asistente"),
+    distributionCard("Canal de acceso", "Dónde se utiliza el asistente", analytics.assistant?.channels, "interacciones", "#7432c4", "Sim. Analítica Asistente", "donut"),
+    distributionCard("Idioma de la consulta", "Distribución lingüística", analytics.assistant?.languages, "consultas", "#3066fe", "Sim. Analítica Asistente"),
+  ].join("");
+  const subTabs = ["Resumen", "Analítica Web", "Analítica App", "Analítica Asistente"];
+  const content = state.promoSubTab === 1 ? `<div class="result-demand-charts__grid result-demand-charts__grid--three">${webCards}</div>` : state.promoSubTab === 2 ? `<div class="result-demand-charts__grid result-demand-charts__grid--four">${appCards}</div>` : state.promoSubTab === 3 ? `<div class="result-demand-charts__grid result-demand-charts__grid--four">${assistantCards}</div>` : `<div class="result-demand-charts__grid result-demand-charts__grid--three">${cards}</div><div class="result-demand-charts__grid result-demand-charts__grid--four">${extraCards}</div>`;
+  return `<div class="result-promo-module"><aside class="result-promo-subnav"><small>ANALÍTICA</small>${subTabs.map((label, index) => `<button type="button" class="${state.promoSubTab === index ? "active" : ""}" data-promo-subtab="${index}"><span>${index + 1}</span><b>${label}</b></button>`).join("")}</aside><div class="result-promo-content"><div class="result-demand-charts__intro"><div><small>INDICADORES CLAVE</small><h3>${subTabs[state.promoSubTab]}</h3></div><span>${state.promoSubTab === 0 ? "Comparativa y analítica de canales" : "Datos calculados desde la hoja de respuestas"}</span></div>${content}</div></div>`;
+}
+
 function renderResultBlock() {
   const block = state.data.result.blocks[state.resultTab] || state.data.result.blocks[0];
   const rows = block.rows.filter((row) => clean(row[0]) && !/^Bloque/i.test(clean(row[0])));
@@ -627,8 +691,8 @@ function renderResultBlock() {
           <p>Indicadores del bloque ${state.resultTab + 1} con lectura sin acción vs. con acción</p>
         </div>
       </div>
-      ${state.resultTab === 0 ? renderResultDemandCharts() : state.resultTab === 1 ? renderResultOfferCharts() : ""}
-      ${state.resultTab === 0 ? "" : `<div class="result-table-wrap">
+      ${state.resultTab === 0 ? renderResultDemandCharts() : state.resultTab === 1 ? renderResultOfferCharts() : state.resultTab === 2 ? renderResultPromotionCharts() : ""}
+      ${state.resultTab <= 2 ? "" : `<div class="result-table-wrap">
         <table class="result-table">
           <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
           <tbody>${tableRows}</tbody>
@@ -2025,6 +2089,12 @@ function render() {
       const resultTabBtn = event.target.closest("[data-result-tab]");
       if (resultTabBtn && blocksEl.contains(resultTabBtn)) {
         state.resultTab = Number(resultTabBtn.dataset.resultTab);
+        render();
+        return;
+      }
+      const promoSubTabBtn = event.target.closest("[data-promo-subtab]");
+      if (promoSubTabBtn && blocksEl.contains(promoSubTabBtn)) {
+        state.promoSubTab = Number(promoSubTabBtn.dataset.promoSubtab);
         render();
         return;
       }
