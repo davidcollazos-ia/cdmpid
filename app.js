@@ -363,44 +363,33 @@ function renderBlock(block, view) {
 
 function renderDiagnosticTabs() {
   const blocks = state.data.diagnostic.blocks;
-  const shortLabels = [
-    "Oferta",
-    "Perfil",
-    "Digital",
-    "Promoción",
-    "Comportamiento",
-    "Satisfacción",
-    "Reputación",
-    "Residentes",
-    "Coyuntura",
-    "Medioamb.",
-  ];
+  const visibleIndices = [0, 1, 2, 3, 4, 5, 7];
+  const shortLabels = ["Oferta", "Perfil", "Digital", "Promoción", "Comportamiento", "Satisfacción", "Residentes"];
   return `
     <div class="diag-tabs">
-      ${blocks
-        .slice(0, 8)
+      ${visibleIndices
         .map(
-          (block, idx) => `
-            <button type="button" class="${idx === state.diagnosticTab ? "active" : ""}" data-diag-tab="${idx}">
-              <b>${shortLabels[idx] || block.title}</b>
+          (blockIndex, displayIndex) => `
+            <button type="button" class="${blockIndex === state.diagnosticTab ? "active" : ""}" data-diag-tab="${blockIndex}">
+              <b>${shortLabels[displayIndex] || blocks[blockIndex].title}</b>
               <div class="diag-tabs__meta">
-                <span>${idx + 1}</span>
-                <small>${countIndicators(block)} indicadores</small>
+                <span>${displayIndex + 1}</span>
+                <small>${countIndicators(blocks[blockIndex])} indicadores</small>
               </div>
             </button>`
         )
         .join("")}
       <button type="button" class="${state.diagnosticTab === "coyuntura" ? "active" : ""}" data-diag-tab="coyuntura">
-        <b>${shortLabels[8]}</b>
+        <b>Coyuntura</b>
         <div class="diag-tabs__meta">
-          <span>9</span>
+          <span>8</span>
           <small>5 indicadores</small>
         </div>
       </button>
       <button type="button" class="${state.diagnosticTab === "medioamb" ? "active" : ""}" data-diag-tab="medioamb">
-        <b>${shortLabels[9]}</b>
+        <b>Medioamb.</b>
         <div class="diag-tabs__meta">
-          <span>10</span>
+          <span>9</span>
           <small>3 indicadores</small>
         </div>
       </button>
