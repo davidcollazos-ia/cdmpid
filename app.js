@@ -553,7 +553,7 @@ function renderResultDemandCharts() {
     { title: "Visitantes repetidores", short: "Repetición tras la acción", unit: "% de visitantes", color: "#7432c4" },
     { title: "Peso de enero-marzo", short: "Peso sobre el total anual", unit: "% del total anual", color: "#23845a" },
     { title: "Captación de la acción", short: "Visitantes captados por invierno", unit: "% de visitantes", color: "#ff7417" },
-    { title: "Ocupación de experiencias", short: "Bodegas y experiencias participantes", unit: "% de ocupación", color: "#3066fe" },
+    { title: "Reservas servicios públicos", short: "Bodegas y experiencias participantes", unit: "% de ocupación", color: "#3066fe" },
   ];
   const cards = configs.map((config, index) => {
     const row = rows[index] || [];
@@ -570,7 +570,7 @@ function renderResultDemandCharts() {
         <div class="result-chart__unit">Unidad: ${config.unit}</div>
         <div class="result-chart__bars">${bar("Sin acción", before, true)}${bar("Con acción", after)}</div>
         <small class="result-chart__effect">${clean(row[4]) || "Comparación ilustrativa"}</small>
-        <small class="result-chart__source">Fuente: ${clean(row[6]) || "No especificada"}</small>
+        <small class="result-chart__source">Fuente: ${index === 4 ? "Reservas" : clean(row[6]) || "No especificada"}</small>
       </article>`;
   }).join("");
   return `<div class="result-demand-charts"><div class="result-demand-charts__intro"><div><small>INDICADORES CLAVE</small><h3>Demanda y desestacionalización</h3></div><span>Comparativa sin acción / con acción</span></div><div class="result-demand-charts__grid">${cards}</div></div>`;
@@ -1236,7 +1236,7 @@ function renderDiagnosticPromotionCards() {
         <div>
           <small>VISOR DE TARJETAS</small>
           <h2>${block.title}</h2>
-          <p>Datos calculados desde las hojas Sim. Analitica Web, App y Asistente</p>
+          <p>Datos generados por métodos automatizados</p>
         </div>
       </div>
       <div class="diag-profile-grid diag-digital-grid">
@@ -1487,7 +1487,7 @@ function renderDiagnosticSatisfactionCards() {
         <div>
           <small>VISOR DE TARJETAS</small>
           <h2>${block.title}</h2>
-          <p>Todos los indicadores de satisfacción y reputación se leen desde la encuesta simulada</p>
+          <p>Datos generados por métodos automatizados</p>
         </div>
       </div>
       <div class="diag-profile-grid diag-digital-grid">
