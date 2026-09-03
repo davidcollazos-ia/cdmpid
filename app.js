@@ -119,6 +119,34 @@ function resourceCategory(type, keywords = []) {
   return "Otros";
 }
 
+function translatePoiType(type) {
+  const labels = {
+    Winery: "Bodega",
+    Enoteca: "Enoteca",
+    CultureCentre: "Centro cultural",
+    TouristAttractionSite: "Lugar de interés turístico",
+    Church: "Iglesia",
+    Monument: "Monumento",
+    Hotel: "Hotel",
+    ApartHotel: "Apartahotel",
+    RuralHouse: "Casa rural",
+    Restaurant: "Restaurante",
+    CafeOrCoffeeShop: "Cafetería",
+    CateringService: "Servicio de catering",
+    Pub: "Pub",
+    Event: "Evento",
+    Tour: "Visita guiada",
+    NaturalPark: "Parque natural",
+    NaturalResource: "Recurso natural",
+    TravelAgency: "Agencia de viajes",
+    AccessoriesAndComplements: "Accesorios y complementos",
+    Handicrafts: "Artesanía",
+    ShoppingCenter: "Centro comercial",
+    TouristInformationOffice: "Oficina de turismo",
+  };
+  return labels[type] || String(type || "Sin tipo").replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
 function buildDiagnosticResourceStats() {
   const items = getDiagnosticResourceData().map((resource) => {
     const type = getResourceType(resource);
@@ -412,7 +440,7 @@ function renderDiagnosticMap() {
   const totalItems = Math.max(1, stats.items.length);
   const totalGeo = Math.max(1, stats.geolocated.length);
   const typeList = stats.byType.slice(0, 5).map((item, idx) => ({
-    label: item.type,
+    label: translatePoiType(item.type),
     value: item.count,
     color: palette[idx % palette.length],
   }));
@@ -490,23 +518,13 @@ function renderDiagnosticMap() {
           </div>
         </div>
         <aside class="diag-map-sidebar">
+          ${stackedBars(typeList, "Recursos por tipo", "Los tipos de recurso más repetidos")}
+          ${stackedBars(categoryList, "Capas por categoría", "Las familias temáticas más frecuentes")}
           <article class="diag-side-card diag-side-card--chart">
             <h3>Cobertura del dato</h3>
             ${renderDonut(stats.coverage.location, stats.items.length, palette[1], "Con ubicación")}
             <div class="diag-chart-legend">
               ${coverageLegend.map((item) => `<div><i style="background:${item.color}"></i><span>${item.label}</span><small>${item.value}</small></div>`).join("")}
-            </div>
-          </article>
-          ${stackedBars(categoryList, "Capas por categoría", "Las familias temáticas más frecuentes")}
-          ${stackedBars(typeList, "Tipologías por tipo", "Los tipos de recurso más repetidos")}
-          <article class="diag-side-card diag-side-card--chart">
-            <h3>Visibilidad geográfica</h3>
-            ${renderDonut(stats.coverage.location, totalItems, palette[3], "Con ubicación")}
-            <div class="diag-chart-legend">
-              ${[
-                { label: "Con ubicación", value: stats.coverage.location, color: palette[0] },
-                { label: "Sin ubicación", value: totalItems - stats.coverage.location, color: "#e6e9f2" },
-              ].map((item) => `<div><i style="background:${item.color}"></i><span>${item.label}</span><small>${item.value}</small></div>`).join("")}
             </div>
           </article>
         </aside>
@@ -2242,7 +2260,10 @@ function initLeafletMap() {
         }).bindTooltip(item.name).addTo(groups[category]);
         bounds.push([item.location.lat, item.location.lng]);
       });
-      if (bounds.length) map.fitBounds(bounds, { padding: [20, 20] });
+      if (bounds.length) {
+        // Encuadre inicial de la provincia de Cádiz, manteniendo Jerez dentro del mapa.
+        map.fitBounds(L.latLngBounds([[35.88, -6.55], [36.82, -5.25]]), { padding: [20, 20] });
+      }
       map._diagGroups = groups;
     } else if (points) {
       points.forEach((p) => L.marker(p.coords).addTo(map).bindTooltip(p.name));
